@@ -166,3 +166,31 @@ Built recovery tracking logic to calculate days since each muscle was trained di
 Updated recommendation engine to filter recently trained muscles, detect overdue muscles, and generate recovery-aware workout recommendations using priority scoring with secondary muscle fatigue penalties.
 
 Completed Phase 1 backend logic for AI Fitness Tracker.
+
+# July 4
+
+## Tasks Completed
+
+- Created a dedicated **Log Workout** page in Streamlit.
+- Added a workout date picker using `st.date_input()`.
+- Added an exercise dropdown using `exercise_database`.
+- Implemented dynamic set generation based on the selected number of sets.
+- Added reps and weight input fields for each workout set.
+- Refactored workout-saving logic by introducing `save_workout()` in `tracker.py`.
+- Separated UI from business logic, allowing both the CLI and Streamlit interfaces to reuse the same backend.
+- Integrated the Streamlit workout page with `save_workout()`.
+- Verified successful workout logging to the CSV through the Streamlit interface.
+- Preserved automatic Personal Record (PR) detection within the Streamlit workflow.
+
+---
+
+## Design Decisions
+
+- All workout processing and saving logic remains inside `tracker.py`.
+- Streamlit is responsible only for collecting user input and displaying results.
+- The new `save_workout()` function serves as a shared backend for both the CLI and Streamlit interfaces, eliminating code duplication.
+- Multiple PRs achieved within the same workout session are intentionally preserved to maximize user feedback and motivation.
+- Workout data continues to be stored in the existing CSV format, ensuring full backward compatibility with the CLI version.
+- UI and backend responsibilities are kept separate to improve maintainability and simplify future integration with databases, APIs, or additional frontends.
+
+

@@ -82,6 +82,39 @@ def log_workout():
     print(workout_df.tail(10))
     return date
 
+def save_workout(date, exercise, reps_list, weight_list):
+    workout_df = load_workout_data()
+    pr_messages = []
+
+    for set_number, (reps, weight) in enumerate(zip(reps_list, weight_list), start=1):
+            exercise_history = workout_df[workout_df["Exercise"] == exercise]
+
+            if exercise_history.empty:
+                max_weight = 0
+                if set_number == 1:
+                    pr_messages.append(f"First time doing {exercise}!")
+
+            else:
+                max_weight = exercise_history["Weight"].max()
+
+            if weight > max_weight:
+                if max_weight == 0:
+                    pr_messages.append(f"🏆 Starting PR for {exercise}: {weight} kg")
+                else:
+                    pr_messages.append(f"🏆 New {exercise} PR: Previous {max_weight} kg → Current {weight} kg")
+
+            new_workout_entry = {
+            "Date": str(date),
+            "Exercise": exercise,
+            "Set": set_number,
+            "Reps": reps,
+            "Weight": weight}
+
+            workout_df = pd.concat([workout_df, pd.DataFrame([new_workout_entry])],ignore_index=True)
+
+    workout_df.to_csv(workout_sets_file, index=False)
+    return pr_messages
+
 #----------ANALYTICS & GRAPHS----------
 def workout_summary(date):
     workout_df = load_workout_data()

@@ -9,13 +9,13 @@ A Python-based fitness tracking application that logs workouts, analyzes perform
 ## Features
 
 - Workout session logging
+- Log workouts through both CLI and Streamlit
 - Daily metrics tracking (sleep, calories, bodyweight)
 - Personal Record (PR) detection
 - Workout volume calculation
 - Progress graph visualization
 - Recovery score calculation (0–100)
-- Sleep score analysis
-- Calorie score analysis
+- Sleep & Calorie score analysis
 - Fatigue scoring based on relative training volume
 - Calorie trend analysis using historical intake data
 - Modular Python architecture for maintainability
