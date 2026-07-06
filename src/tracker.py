@@ -215,4 +215,25 @@ def consistency_tracker(date):
     else:
         print("No recent training logged.")
 
-        
+#----------DASHBOARD FUNCTIONS----------
+def get_workout_dates():
+    workout_df = load_workout_data()
+
+    if workout_df.empty:
+        return []
+
+    workout_dates = (workout_df["Date"].drop_duplicates().sort_values().tolist())
+
+    return workout_dates
+
+def get_total_workout_sessions():
+    return len(get_workout_dates())
+
+def get_total_exercises_logged():
+    workout_df = load_workout_data
+
+    if workout_df.empty:
+        return []
+
+    exercise_sessions = (workout_df[["Date", "Exercise"]].drop_duplicates())
+    return exercise_sessions.shape[0]

@@ -193,4 +193,29 @@ Completed Phase 1 backend logic for AI Fitness Tracker.
 - Workout data continues to be stored in the existing CSV format, ensuring full backward compatibility with the CLI version.
 - UI and backend responsibilities are kept separate to improve maintainability and simplify future integration with databases, APIs, or additional frontends.
 
+# July 6
 
+## Tasks Completed
+
+- Designed the dashboard backend architecture.
+- Implemented `get_workout_dates()` to retrieve unique workout session dates.
+- Implemented `get_total_workout_sessions()` using reusable backend helpers.
+- Designed `get_total_exercises_logged()` using unique `(Date, Exercise)` pairs.
+- Finalized the dashboard layout and replaced the workout streak with a workout calendar for better long-term user motivation.
+
+## Concepts Learned
+
+### Pandas
+- `.shape`
+- `.drop_duplicates()`
+- `.tolist()`
+
+### Design Principles
+- Single Responsibility Principle for backend helper functions.
+- Importance of reusable backend APIs before building the UI.
+
+## Next Steps
+
+- Implement `get_total_exercises_logged()`.
+- Build `get_recent_workouts()`.
+- Start rendering the dashboard metrics and workout calendar in Streamlit.
