@@ -230,10 +230,48 @@ def get_total_workout_sessions():
     return len(get_workout_dates())
 
 def get_total_exercises_logged():
-    workout_df = load_workout_data
+    workout_df = load_workout_data()
 
     if workout_df.empty:
-        return []
+        return 0
 
     exercise_sessions = (workout_df[["Date", "Exercise"]].drop_duplicates())
     return exercise_sessions.shape[0]
+
+def get_recent_workouts():
+    workout_df = load_workout_data()
+
+    summary = (
+        workout_df
+        .groupby(["Date", "Exercise"])
+        .agg({
+            "Weight": "max",
+            "Set": "count"
+        })
+        .reset_index()
+        .rename(
+            columns={
+            "Weight": "Max Weight",
+            "Set": "Total Sets"
+            })
+        .sort_values(by="Date", ascending=False)
+        .head(5)
+        .reset_index(drop=True)
+        )
+    
+    summary["Date"] = pd.to_datetime(summary["Date"])
+    summary["Date"] = summary["Date"].dt.strftime("%d %b %Y")
+
+    return summary
+
+def get_last_workout_date():
+    workout_dates = get_workout_dates()
+
+    if len(workout_dates) == 0:
+        return "No Workouts"
+
+    return (pd.to_datetime(workout_dates[-1]).strftime("%d %b %Y"))
+
+
+
+

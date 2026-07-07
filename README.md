@@ -1,96 +1,168 @@
-## Why I Built This
+### Why I Built This
 
-Built this project to combine my passion for fitness and programming while learning how to design data-driven applications that provide personalized workout and recovery insights.
+I built this project to combine my passion for fitness and programming while learning software engineering, data analysis, and AI application development. The goal is to build a professional-grade fitness tracker that evolves from a simple workout logger into an intelligent workout recommendation system.
 
-# Fitness Tracker & Recovery Analytics
+# AI Fitness Tracker
 
-A Python-based fitness tracking application that logs workouts, analyzes performance trends, calculates recovery scores, and provides personalized workout insights based on training history.
+A modular Python fitness tracking application that logs workouts, analyzes training history, tracks recovery, and visualizes workout data through both a Command Line Interface (CLI) and a Streamlit dashboard.
 
-## Features
+---
 
-- Workout session logging
+## Current Features
+
+### Workout Logging
 - Log workouts through both CLI and Streamlit
-- Daily metrics tracking (sleep, calories, bodyweight)
-- Personal Record (PR) detection
+- Select exercises from an exercise database
+- Record sets, reps, and weights
+- Automatic Personal Record (PR) detection
+- Multiple PR detection within a single workout session
+
+### Dashboard
+- Workout Sessions counter
+- Exercises Logged counter
+- Last Workout tracker
+- Recent Workout summary table
+- Graceful empty-state handling for first-time users
+
+### Analytics Backend
 - Workout volume calculation
-- Progress graph visualization
-- Recovery score calculation (0–100)
-- Sleep & Calorie score analysis
-- Fatigue scoring based on relative training volume
-- Calorie trend analysis using historical intake data
-- Modular Python architecture for maintainability
+- Recent workout aggregation
+- Workout session tracking
+- Exercise session tracking
+- Modular data processing using Pandas
+
+### Recovery System (Backend)
+- Daily metrics tracking (sleep, calories, bodyweight)
+- Recovery score framework
+- Sleep score
+- Calorie score
+- Fatigue score
+- Calorie trend analysis
+
+### Architecture
+- Modular Python architecture
+- Reusable backend shared by CLI and Streamlit
 - Exercise database with primary and secondary muscle mapping
+- CSV-based persistent storage
+
+---
+
+## Planned Features
+
+- Workout Calendar
+- Recovery Score Dashboard
+- Progress Graphs
+- Muscle Recovery Visualization
+- AI Workout Recommendation Engine
+- Exercise Progress Analytics
+- Recovery Insights
+- Machine Learning-based Recovery Prediction
+
+---
 
 ## Project Structure
 
 ```text
 fitness-tracker/
-├── data/                       # CSV storage files
-├── project_docs/              # Learning journal + development logs
-├── screenshots/               # README screenshots
+├── data/
+│   ├── workout_sets.csv
+│   ├── daily_metrics.csv
+│
+├── project_docs/
+│   ├── progress.md
+│   ├── learning.md
+│
+├── screenshots/
+│
 ├── src/
-│   ├── main.py               # Main application entry point
-│   ├── tracker.py            # Workout logging + analytics
-│   ├── recovery.py           # Recovery scoring subsystem
-│   ├── helpers.py            # Utility/helper functions
-│   ├── muscle_history.py     # Muscle training history tracking
-│   └── recommendation_engine.py  # Workout recommendation engine
+│   ├── app.py                 # Streamlit entry point
+│   ├── tracker.py             # Workout logging + dashboard helpers
+│   ├── recovery.py            # Recovery scoring
+│   ├── helpers.py
+│   ├── muscle_history.py
+│   ├── recommendation_engine.py
+│   └── pages/
+│       ├── 00_Dashboard.py
+│       ├── 01_Log_Workout.py
+│       ├── 02_Workout_Recommendation.py
+│       └── 03_Recovery.py
+│
 ├── requirements.txt
 └── README.md
-````
+```
+
+---
 
 ## Tech Stack
 
 - Python
 - Pandas
+- Streamlit
 - Matplotlib
-- CSV-based data storage
-- Git & GitHub
+- CSV Storage
+- Git
+- GitHub
 
-## How To Run
+---
 
-Clone repository:
+## How to Run
 
+Clone the repository
+
+```bash
 git clone https://github.com/aryansachdeva1718-web/ai-fitness-tracker.git
+```
 
-Install dependencies:
+Install dependencies
 
+```bash
 pip install -r requirements.txt
+```
 
-Run application:
+Run the Streamlit application
 
-python main.py
+```bash
+py -m streamlit run src/app.py
+```
+
+---
 
 ## Screenshots
 
-### Workout Logging
+*(To be updated as new pages are completed.)*
 
-![Workout Logging](screenshots/workout_logging.png)
+- Dashboard
+- Workout Logging
+- Recovery
+- Workout Recommendation
 
-### Recovery Score
+---
 
-![Recovery Score](screenshots/recovery_score.png)
+## Current Development Status
 
-### Progress Graph
+The project is actively being built from scratch while documenting the complete development process.
 
-![Progress Graph](screenshots/progress_graph.png)
+Current focus:
 
-## Sample Output
+- Streamlit Dashboard
+- Workout Calendar
+- Recovery Analytics
 
-Recovery Score: 84/100
+Upcoming milestones:
 
-Status: Well Recovered
+- Progress Graphs
+- Recommendation Engine
+- AI Features
 
-Calories are consistent with your recent average.
-
-New Bench Press PR: Previous 75 kg → Current 80 kg
+---
 
 ## Future Improvements
 
-- Machine learning based workout recovery prediction
-- Personalized recovery recommendations using historical training data
-- Streamlit web interface for better user interaction
-- Exercise recommendation engine based on progression trends
-- Workout consistency and adherence analytics
-- Long-term performance prediction models
-
+- Authentication and user accounts
+- Cloud database integration
+- AI workout recommendations
+- Personalized recovery suggestions
+- Long-term performance forecasting
+- Mobile-friendly UI
+- Export workout history
+- Docker deployment

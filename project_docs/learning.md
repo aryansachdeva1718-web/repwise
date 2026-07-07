@@ -219,3 +219,23 @@ Completed Phase 1 backend logic for AI Fitness Tracker.
 - Implement `get_total_exercises_logged()`.
 - Build `get_recent_workouts()`.
 - Start rendering the dashboard metrics and workout calendar in Streamlit.
+
+# July 7
+
+## Tasks Completed
+
+- Implemented `get_recent_workouts()` helper function using a complete Pandas pipeline.
+- Learned and applied:
+  - `groupby()`
+  - `agg()`
+  - `reset_index()`
+- Implemented `get_last_workout_date()` helper function.
+- Improved dashboard architecture by keeping all business logic inside `tracker.py`.
+- Added empty-state handling for the Recent Workouts section.
+
+## Design Decisions
+
+- Dashboard remains presentation-only; all data processing stays inside `tracker.py`.
+- Dates continue to be stored in ISO format (`YYYY-MM-DD`) inside CSV files for reliable sorting and parsing.
+- Dashboard gracefully handles first-time users by displaying an informational message instead of an empty table.
+- Helper functions were designed to remain reusable across future pages (analytics, calendar, recommendations).
