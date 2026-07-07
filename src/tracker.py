@@ -272,6 +272,21 @@ def get_last_workout_date():
 
     return (pd.to_datetime(workout_dates[-1]).strftime("%d %b %Y"))
 
+def get_calendar_events():
+    workout_dates = get_workout_dates()
+
+    events = []
+
+    for date in workout_dates:
+        events.append(
+            {
+                "title": "💪",
+                "start": date
+            }
+        )
+
+    return events
+
 
 
 

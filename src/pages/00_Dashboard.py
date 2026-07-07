@@ -1,5 +1,6 @@
 import streamlit as st
 from tracker import *
+from streamlit_calendar import calendar
 
 st.title("🏠 AI Fitness Dashboard")
 st.divider()
@@ -25,6 +26,41 @@ with col3:
     )
 
 st.caption(f"📆 Last Workout: {get_last_workout_date()}")
+
+st.divider()
+
+st.subheader("🗓️ Workout Calendar")
+
+calendar(
+    events=get_calendar_events(),
+    options={
+        "initialView": "dayGridMonth",
+        "headerToolbar": {
+            "left": "prev,next today",
+            "center": "title",
+            "right": ""
+        }
+    },
+    custom_css={
+        ".fc-event": {
+            "background-color": "#3b82f6",
+            "border-radius": "8px",
+            "border": "none",
+            "font-size": "12px",
+            "text-align": "center",
+            "padding": "2px"
+        },
+        ".fc-toolbar-title": {
+            "font-size": "24px",
+            "font-weight": "bold"
+        },
+        ".fc-day-today": {
+            "background-color": "#1f2937"
+        }
+    },
+    key="workout_calendar"
+)
+
 
 st.divider()
 
