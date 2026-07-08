@@ -31,7 +31,7 @@ st.divider()
 
 st.subheader("🗓️ Workout Calendar")
 
-calendar(
+calendar_state = calendar(
     events=get_calendar_events(),
     options={
         "initialView": "dayGridMonth",
@@ -61,6 +61,18 @@ calendar(
     key="workout_calendar"
 )
 
+selected_date = None
+
+if (calendar_state and calendar_state["callback"] == "eventClick"):
+    selected_date = calendar_state["eventClick"]["event"]["start"]
+
+if selected_date:
+    st.subheader(f"📋 Workout Details - {selected_date}")
+    details = get_workout_details(selected_date)
+    st.dataframe(
+        details,
+        use_container_width=True
+    )
 
 st.divider()
 

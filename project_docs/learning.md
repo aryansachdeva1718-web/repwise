@@ -239,3 +239,55 @@ Completed Phase 1 backend logic for AI Fitness Tracker.
 - Dates continue to be stored in ISO format (`YYYY-MM-DD`) inside CSV files for reliable sorting and parsing.
 - Dashboard gracefully handles first-time users by displaying an informational message instead of an empty table.
 - Helper functions were designed to remain reusable across future pages (analytics, calendar, recommendations).
+
+# July 8
+
+## Tasks Completed
+
+- Improved understanding of the Streamlit Calendar component's interaction model.
+- Stored the calendar widget output in a variable (`calendar_state`) instead of rendering it directly.
+- Explored the FullCalendar event callback payload and identified the path required to extract the selected workout date.
+- Designed the workflow for displaying workout details after clicking a workout event.
+- Implemented backend function `get_workout_details(date)` to retrieve all exercises performed on a selected workout date.
+
+## Concepts Learned
+
+### Dictionary Traversal
+
+Learned how nested dictionaries can be accessed step-by-step:
+
+```python
+calendar_state
+    ↓
+eventClick
+    ↓
+event
+    ↓
+start
+```
+
+which corresponds to
+
+```python
+calendar_state["eventClick"]["event"]["start"]
+```
+
+### Backend/UI Separation
+
+Continued following the project's architecture:
+
+```
+Calendar
+      ↓
+selected_date
+      ↓
+tracker.py
+      ↓
+CSV lookup
+      ↓
+DataFrame
+      ↓
+Streamlit display
+```
+
+The UI never accesses CSV files directly. All data retrieval remains inside `tracker.py`.

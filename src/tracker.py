@@ -287,6 +287,21 @@ def get_calendar_events():
 
     return events
 
+def get_workout_details(date):
+    workout_df = load_workout_data()
+
+    if workout_df.empty:
+        return workout_df
+    
+    workout_details = workout_df[workout_df["Date"] == str(date)]
+    return workout_details
+
+
+
+    
+    
+
+
 
 
 
