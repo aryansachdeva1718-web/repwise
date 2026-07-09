@@ -67,13 +67,55 @@ if (calendar_state and calendar_state["callback"] == "eventClick"):
     selected_date = calendar_state["eventClick"]["event"]["start"]
 
 if selected_date:
-    st.subheader(f"📋 Workout Details - {selected_date}")
     details = get_workout_details(selected_date)
-    st.dataframe(
-        details,
-        use_container_width=True
-    )
 
+    if details.empty:
+        st.info("No workout found for this date.")
+
+    else:
+        formatted_date = (pd.to_datetime(selected_date).strftime("%d %b %Y"))
+        st.subheader(f"📋 Workout Details - {selected_date}")
+        
+
+        exercise_count = details["Exercise"].nunique()
+        total_sets = len(details)
+        total_volume = (details["Weight"] * details["Reps"]).sum()
+
+        summary_col1, summary_col2, summary_col3 = st.columns(3)
+    
+        with summary_col1:
+            st.metric(
+                label="Exercises",
+                value=exercise_count)
+
+        with summary_col2:
+            st.metric(
+                label = "Sets",
+                value = total_sets)
+        
+        with summary_col3:
+            st.metric(
+                label= "Volume",
+                value=f"{total_volume:,} kg")
+        
+        st.divider()
+
+        groups = list(details.groupby("Exercise"))
+
+        for i, (exercise, group) in enumerate(groups):
+
+            st.markdown(f"### 💪 {exercise}")
+
+            for _, row in group.iterrows():
+                st.write(
+                    f"**Set {row['Set']}** • "
+                    f"{row['Weight']} kg × "
+                    f"{row['Reps']} reps"
+                )
+
+            if i != len(groups) - 1:
+                st.divider()
+    
 st.divider()
 
 st.subheader("📋 Recent Workouts")

@@ -46,14 +46,14 @@ Date,Exercise,Set,Reps,Weight
 2026-06-30,Lat Pulldown,1,12,65.0
 2026-06-30,Lat Pulldown,2,12,65.0
 2026-06-30,Lat Pulldown,3,12,65.0
+2026-06-30,Lat Pulldown,1,12,65.0
+2026-06-30,Lat Pulldown,2,12,65.0
 2026-06-30,Lat Pulldown,3,12,65.0
-2026-06-30,Lat Pulldown,3,12,65.0
-2026-06-30,Lat Pulldown,3,12,65.0
-2026-06-30,Lat Pulldown,3,12,65.0
+2026-06-30,Lat Pulldown,1,12,65.0
+2026-06-30,Barbell Curl,1,12,25.0
+2026-06-30,Barbell Curl,2,12,25.0
 2026-06-30,Barbell Curl,3,12,25.0
-2026-06-30,Barbell Curl,3,12,25.0
-2026-06-30,Barbell Curl,3,12,25.0
-2026-06-30,Barbell Row,2,12,50.0
+2026-06-30,Barbell Row,1,12,50.0
 2026-06-30,Barbell Row,2,10,55.0
 2026-06-30,Cable Row,1,12,60.0
 2026-06-30,Cable Row,2,10,70.0
@@ -71,3 +71,5 @@ Date,Exercise,Set,Reps,Weight
 2026-07-04,Cable Row,2,12,60.0
 2026-07-04,Romanian Deadlift,1,12,40.0
 2026-07-04,Romanian Deadlift,2,12,45.0
+2026-07-09,Calf Raise,1,18,55.0
+2026-07-09,Calf Raise,2,18,60.0
