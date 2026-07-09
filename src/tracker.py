@@ -127,15 +127,13 @@ def workout_summary(date):
     heaviest_exercise = heaviest_row["Exercise"]
     heaviest_weight = heaviest_row["Weight"]
 
-    print("\n")
-    print("==============================")
-    print("      WORKOUT SUMMARY")
-    print("==============================")
-    print(f"\nExercises Performed: {exercise_count}")
-    print(f"Total Sets Done: {total_sets}")
-    print(f"Total Volume: {total_volume} kg")
-    print(f"Heaviest Lift: {heaviest_exercise} ({heaviest_weight} kg) ")
-    print("\nWorkout completed successfully.\n")
+    return {
+    "exercise_count": exercise_count,
+    "total_sets": total_sets,
+    "total_volume": total_volume,
+    "heaviest_exercise": heaviest_exercise,
+    "heaviest_weight": heaviest_weight
+}
 
 def plot_progress(date):
     workout_df = load_workout_data()
@@ -146,7 +144,7 @@ def plot_progress(date):
     for exercise in today_exercises:
         exercise_data = workout_df[workout_df["Exercise"] == exercise]
 
-    progress = exercise_data.groupby("Date")["Weight"].max()
+        progress = exercise_data.groupby("Date")["Weight"].max()
 
     plt.figure()
     plt.plot(progress.index,progress.values,marker="o")
@@ -293,6 +291,126 @@ def get_workout_details(date):
     
     workout_details = workout_df[workout_df["Date"] == str(date)]
     return workout_details
+
+#----------STREAMLIT ANALYTICS----------
+def get_exercise_progress(exercise):
+
+    workout_df = load_workout_data()
+
+    exercise_data = workout_df[
+        workout_df["Exercise"] == exercise
+    ]
+
+    progress = (
+        exercise_data
+        .groupby("Date")["Weight"]
+        .max()
+        .reset_index()
+    )
+
+    return progress
+
+def get_total_volume():
+
+    workout_df = load_workout_data()
+
+    if workout_df.empty:
+        return 0
+
+    total_volume = (workout_df["Weight"] * workout_df["Reps"]).sum()
+
+    return int(total_volume)
+
+def get_average_session_volume():
+
+    workout_df = load_workout_data()
+
+    if workout_df.empty:
+        return 0
+
+    workout_df["Volume"] = workout_df["Weight"] * workout_df["Reps"]
+
+    daily_volume = (
+        workout_df
+        .groupby("Date")["Volume"]
+        .sum()
+    )
+
+    avg_volume = daily_volume.mean()
+
+    return round(avg_volume)
+
+def get_volume_history():
+
+    workout_df = load_workout_data()
+
+    if workout_df.empty:
+        return workout_df
+
+    workout_df["Volume"] = workout_df["Weight"] * workout_df["Reps"]
+
+    volume_history = (
+        workout_df
+        .groupby("Date")["Volume"]
+        .sum()
+        .reset_index()
+    )
+
+    volume_history["Date"] = pd.to_datetime(volume_history["Date"])
+    return volume_history
+
+def get_bodyweight_history():
+
+    daily_df = load_daily_data()
+
+    if daily_df.empty:
+        return daily_df
+    
+    daily_df["Date"] = pd.to_datetime(daily_df["Date"])
+    return daily_df[["Date", "Bodyweight"]]
+
+def get_all_exercises():
+
+    workout_df = load_workout_data()
+
+    if workout_df.empty:
+        return []
+
+    exercises = sorted(workout_df["Exercise"].unique())
+
+    return exercises
+
+def get_exercise_progress(exercise):
+
+    workout_df = load_workout_data()
+
+    if workout_df.empty:
+        return workout_df
+
+    exercise_data = workout_df[
+        workout_df["Exercise"] == exercise
+    ]
+
+    progress = (
+        exercise_data
+        .groupby("Date")["Weight"]
+        .max()
+        .reset_index()
+    )
+
+    progress["Date"] = pd.to_datetime(progress["Date"])
+    return progress
+
+def get_heaviest_lift():
+
+    workout_df = load_workout_data()
+
+    if workout_df.empty:
+        return None
+
+    row = workout_df.loc[workout_df["Weight"].idxmax()]
+
+    return row["Exercise"], row["Weight"]
 
 
 

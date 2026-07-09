@@ -28,6 +28,14 @@ A modular Python fitness tracking application that logs workouts, analyzes train
 - Recent workout summary table
 - Graceful empty-state handling for first-time users
 
+### Analytics
+- Workout statistics
+- Total volume
+- Average session volume
+- Exercise progression graphs
+- Workout volume trend
+- Bodyweight trend
+
 ### Recovery System
 - Daily recovery score (0–100)
 - Sleep score analysis
@@ -66,11 +74,8 @@ A modular Python fitness tracking application that logs workouts, analyzes train
 
 ## Planned Features
 
-- Progress Graphs
 - Muscle Recovery Visualization
 - AI Workout Recommendation Engine
-- Exercise Progress Analytics
-- Recovery Insights
 - Machine Learning-based Recovery Prediction
 
 ---
@@ -101,9 +106,9 @@ fitness-tracker/
 │       ├── 00_Dashboard.py
 │       ├── 01_Log_Workout.py
 │       ├── 02_Log_Daily_Metrics.py
-│       ├── 03_Workout_Recommendation.py
+│       ├── 03_Analytics.py
 │       ├── 04_Recovery_Score.py
-│       └── 05_Analytics.py
+│       └── 05_Workout_Recommendation.py
 │
 ├── requirements.txt
 └── README.md
@@ -162,7 +167,6 @@ The project is actively being built from scratch while documenting the complete 
 
 Upcoming milestones:
 
-- Progress Graphs
 - AI Features
 
 ---

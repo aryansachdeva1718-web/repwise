@@ -1,5 +1,7 @@
 import streamlit as st
 from tracker import *
+from recovery import *
+from recommendation_engine import *
 from streamlit_calendar import calendar
 
 st.title("🏠 AI Fitness Dashboard")
@@ -20,12 +22,36 @@ with col2:
     )
 
 with col3:
+    latest_date = get_last_workout_date()
+
+    if latest_date:
+        recovery = recovery_score(latest_date)
+        recovery_value = f"{round(recovery['score'])}/100"
+
+    else:
+        recovery_value = "-"
+
     st.metric(
-        label="❤️ Recovery Score",
-        value="Coming Soon"
+        label="❤️ Latest Recovery",
+        value=recovery_value)
+    
+st.caption(f"📆 Last Workout: {get_last_workout_date()}")
+
+recommendation = recommend_next_workout()
+
+if recommendation["training_focus"] == "neglected_muscle":
+
+    st.success(
+        f"🎯 Train **{', '.join(recommendation['muscles'])}**"
     )
 
-st.caption(f"📆 Last Workout: {get_last_workout_date()}")
+else:
+
+    st.info(
+        f"🎯 Priority Muscle: **{recommendation['recommendations'][0]}**"
+    )
+
+st.caption(recommendation["reason"])
 
 st.divider()
 
