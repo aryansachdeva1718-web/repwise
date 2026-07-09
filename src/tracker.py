@@ -4,15 +4,11 @@ from datetime import datetime, timedelta
 from helpers import *
 
 #----------DAILY METRICS FUNCTION----------
-def log_daily_metrics():
+def log_daily_metrics(date, sleep, calories, bodyweight):
 
     daily_df = load_daily_data()
-    print("\n--- DAILY METRICS ---")
 
-    date = get_date()
-    sleep = float(input("Enter sleep hours: "))
-    calories = int(input("Enter calories: "))
-    bodyweight = float(input("Enter bodyweight: "))
+    daily_df = daily_df[daily_df["Date"] != date]
 
     new_daily_entry = {
         "Date": date,
@@ -21,12 +17,14 @@ def log_daily_metrics():
         "Bodyweight": bodyweight
     }
 
-    daily_df = pd.concat([daily_df, pd.DataFrame([new_daily_entry])],
-    ignore_index=True)
+    daily_df = pd.concat(
+        [daily_df, pd.DataFrame([new_daily_entry])],
+        ignore_index=True
+    )
+
+    daily_df = daily_df.sort_values("Date").reset_index(drop=True)
 
     daily_df.to_csv(daily_metrics_file, index=False)
-
-    print(daily_df.tail())
 
 #----------WORKOUT INPUT FUNCTION----------
 def log_workout():

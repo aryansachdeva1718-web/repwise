@@ -12,45 +12,60 @@ A modular Python fitness tracking application that logs workouts, analyzes train
 
 ### Workout Logging
 - Log workouts through both CLI and Streamlit
+- Log daily metrics (sleep, calories, bodyweight)
 - Select exercises from an exercise database
 - Record sets, reps, and weights
 - Automatic Personal Record (PR) detection
 - Multiple PR detection within a single workout session
+- Automatic workout session grouping by date
 
 ### Dashboard
-- Workout Sessions counter
-- Exercises Logged counter
-- Last Workout tracker
-- Recent Workout summary table
+- Workout overview with key metrics
+- Interactive workout calendar
+- Clickable workout history with detailed session breakdown
+- Session summary (exercises, sets, volume)
+- Last workout tracking
+- Recent workout summary table
 - Graceful empty-state handling for first-time users
+
+### Recovery System
+- Daily recovery score (0–100)
+- Sleep score analysis
+- Calorie score analysis
+- Relative fatigue scoring using historical workout volume
+- Automatic scaling when workout history is insufficient
+- Recovery status and training recommendations
+- View recovery data for any logged workout date
+
+### Workout Recommendation
+- Rule-based muscle recommendation engine
+- Neglected muscle detection
+- Muscle priority ranking based on recovery and training frequency
+- Secondary muscle fatigue consideration
+- Training focus with recommendation reasoning
 
 ### Analytics Backend
 - Workout volume calculation
 - Recent workout aggregation
 - Workout session tracking
 - Exercise session tracking
+- Historical volume analysis
+- Calendar event generation
+- Workout detail retrieval by date
 - Modular data processing using Pandas
-
-### Recovery System (Backend)
-- Daily metrics tracking (sleep, calories, bodyweight)
-- Recovery score framework
-- Sleep score
-- Calorie score
-- Fatigue score
-- Calorie trend analysis
 
 ### Architecture
 - Modular Python architecture
 - Reusable backend shared by CLI and Streamlit
+- Separation of business logic and presentation layer
 - Exercise database with primary and secondary muscle mapping
 - CSV-based persistent storage
+- Structured backend responses for Streamlit integration
 
 ---
 
 ## Planned Features
 
-- Workout Calendar
-- Recovery Score Dashboard
 - Progress Graphs
 - Muscle Recovery Visualization
 - AI Workout Recommendation Engine
@@ -81,11 +96,14 @@ fitness-tracker/
 │   ├── helpers.py
 │   ├── muscle_history.py
 │   ├── recommendation_engine.py
+│   ├── exercise_database.py
 │   └── pages/
 │       ├── 00_Dashboard.py
 │       ├── 01_Log_Workout.py
-│       ├── 02_Workout_Recommendation.py
-│       └── 03_Recovery.py
+│       ├── 02_Log_Daily_Metrics.py
+│       ├── 03_Workout_Recommendation.py
+│       ├── 04_Recovery_Score.py
+│       └── 05_Analytics.py
 │
 ├── requirements.txt
 └── README.md
@@ -142,16 +160,9 @@ py -m streamlit run src/app.py
 
 The project is actively being built from scratch while documenting the complete development process.
 
-Current focus:
-
-- Streamlit Dashboard
-- Workout Calendar
-- Recovery Analytics
-
 Upcoming milestones:
 
 - Progress Graphs
-- Recommendation Engine
 - AI Features
 
 ---
