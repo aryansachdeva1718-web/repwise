@@ -22,6 +22,9 @@ A modular Python fitness tracking application that logs workouts, analyzes train
 - Exercises Logged counter
 - Last Workout tracker
 - Recent Workout summary table
+- Workout Calendar
+- Recovery Page
+- Workout Recommendation
 - Graceful empty-state handling for first-time users
 
 ### Analytics Backend
