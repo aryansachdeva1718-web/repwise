@@ -291,3 +291,71 @@ Streamlit display
 ```
 
 The UI never accesses CSV files directly. All data retrieval remains inside `tracker.py`.
+
+# July 9
+
+# Work Completed
+
+## ❤️ Recovery Page
+
+- Built a complete Recovery page using Streamlit.
+- Added workout date selector with the latest workout selected by default.
+- Connected frontend with the recovery backend (`recovery_score()`).
+- Displayed:
+  - Overall Recovery Score
+  - Sleep Score
+  - Calorie Score
+  - Fatigue Score
+  - Recovery Status
+  - Recovery Recommendation
+- Handled insufficient workout history by displaying Fatigue as **N/A**.
+- Refactored the recovery backend to return structured dictionaries instead of a single numeric score.
+
+---
+
+## 🤖 Recommendation Page
+
+- Built the complete Recommendation (Coach) page.
+- Connected frontend with the recommendation engine.
+- Displays:
+  - Today's recommended training focus
+  - Priority ranking of muscles
+  - Neglected muscle alerts
+  - Recommendation reason
+- Refactored recommendation backend to return structured data including:
+  - Top recommendation
+  - Recommendation ranking
+  - Recommendation reason
+
+---
+
+# Concepts Learned
+
+- Using `st.selectbox()` with `format_func` to display user-friendly dates while keeping raw backend values.
+- Returning structured dictionaries from backend functions instead of primitive values.
+- Keeping business logic inside backend modules while restricting Streamlit pages to presentation only.
+- Designing backend functions that can be reused by different frontends.
+
+---
+
+# Architecture Improvements
+
+- Recovery system now returns:
+  - Recovery Score
+  - Sleep Score
+  - Calorie Score
+  - Fatigue Score
+  - Recovery Status
+  - Recommendation Message
+- Recommendation engine now returns:
+  - Training Focus
+  - Top Recommendation
+  - Priority Ranking
+  - Recommendation Reason
+- Improved separation between backend computation and frontend rendering following the **Single Responsibility Principle**.
+
+---
+
+# Learnings
+
+Today's session focused on integrating backend systems with Streamlit. The biggest takeaway was understanding how returning structured data from backend functions simplifies frontend development and keeps responsibilities clearly separated.

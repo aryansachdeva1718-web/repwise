@@ -58,11 +58,17 @@ def recommend_next_workout():
 
     if overdue:
         return {
-    "training_focus": "neglected_muscle",
-    "muscles": overdue}
+        "training_focus": "neglected_muscle",
+        "muscles": overdue,
+        "top_recommendation": overdue[0],
+        "reason": "Hasn't been trained for over 7 days."}
 
     priority_scores = calculate_priority_scores(filtered_muscles)
     sorted_scores = sort_priority_scores(priority_scores)
+    ranking = list(sorted_scores.keys())
+
     return {
     "training_focus": "balanced_recommendation",
-    "recommendations": sorted_scores}
+    "recommendations": ranking,
+    "top_recommendation": ranking[0],
+    "reason": "Based on muscle recovery and training frequency."}
