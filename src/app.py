@@ -4,13 +4,13 @@ from recovery import *
 from recommendation_engine import *
 
 st.set_page_config(
-    page_title="AI Fitness Tracker",
+    page_title="RepWise",
     page_icon="🏋️",
     layout="wide"
 )
 
-st.title("🏋️ AI Fitness Tracker")
-st.markdown("### Track • Recover • Improve")
+st.title("🏋️ RepWise")
+st.markdown("### Train Smarter. Track Better.")
 st.caption("A data-driven fitness tracker built using Python, Pandas and Streamlit.")
 
 st.divider()

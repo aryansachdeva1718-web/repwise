@@ -4,7 +4,7 @@ from recovery import *
 from recommendation_engine import *
 from streamlit_calendar import calendar
 
-st.title("🏠 AI Fitness Dashboard")
+st.title("🏠 RepWise Dashboard")
 st.divider()
 
 col1, col2, col3 = st.columns(3)

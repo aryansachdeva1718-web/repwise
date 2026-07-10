@@ -2,7 +2,7 @@
 
 I built this project to combine my passion for fitness and programming while learning software engineering, data analysis, and AI application development. The goal is to build a professional-grade fitness tracker that evolves from a simple workout logger into an intelligent workout recommendation system.
 
-# AI Fitness Tracker
+# RepWise
 
 A modular Python fitness tracking application that logs workouts, analyzes training history, tracks recovery, and visualizes workout data through both a Command Line Interface (CLI) and a Streamlit dashboard.
 
