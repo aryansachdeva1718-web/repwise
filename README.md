@@ -83,7 +83,7 @@ A modular Python fitness tracking application that logs workouts, analyzes train
 ## Project Structure
 
 ```text
-fitness-tracker/
+repwise/
 ├── data/
 │   ├── workout_sets.csv
 │   ├── daily_metrics.csv
@@ -133,7 +133,7 @@ fitness-tracker/
 Clone the repository
 
 ```bash
-git clone https://github.com/aryansachdeva1718-web/ai-fitness-tracker.git
+git clone https://github.com/aryansachdeva1718-web/repwise.git
 ```
 
 Install dependencies
