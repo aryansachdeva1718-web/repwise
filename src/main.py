@@ -1,6 +1,5 @@
 from tracker import *
-from recovery import *
-from recommendation_engine import recommend_next_workout
+from cli_helpers import *
 
 
 def main():
@@ -16,32 +15,23 @@ def main():
         choice = input("Enter choice: ")
 
         if choice == "1":
-            log_daily_metrics()
+            cli_log_daily_metrics()
 
 
         elif choice == "2":
             date = log_workout()
-            score = recovery_score(date)
+            
 
-            if score is not None:
-                print(f"\nRecovery Score: {score:.2f}/100")
-                interpret_score(score)
+            if date is not None:
+
+                display_workout_summary(date)
+                display_recovery(date)
                 calorie_trend(date)
                 consistency_tracker(date)
+                display_progress(date)
 
         elif choice == "3":
-            recommendation = recommend_next_workout()
-            print("\n----- Workout Recommendation -----")
-
-            if recommendation["training_focus"] == "neglected_muscle":
-                print("Priority Muscle To Train:")
-                print(", ".join(recommendation["muscles"]))
-
-            else: 
-                print("Recommended Muscle Priority:")
-                for muscle, score in recommendation["recommendations"].items():
-                    print(f"{muscle}: {score} points")
-
+            display_recommendation()
 
         elif choice == "4":
             break

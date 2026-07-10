@@ -146,23 +146,28 @@ def plot_progress(date):
 
         progress = exercise_data.groupby("Date")["Weight"].max()
 
-    plt.figure()
-    plt.plot(progress.index,progress.values,marker="o")
-    plt.title(f"{exercise} Progress")
-    plt.xlabel("Date")
-    plt.ylabel("Max Weight (kg)")
-    # Rotate dates so they don't overlap
-    plt.xticks(rotation=45)
-     # Adds grid lines
-    plt.grid()
-    # Prevent cutting labels
-    plt.tight_layout()
-    plt.show()
+        plt.figure()
+        plt.plot(progress.index,progress.values,marker="o")
+        plt.title(f"{exercise} Progress")
+        plt.xlabel("Date")
+        plt.ylabel("Max Weight (kg)")
+        # Rotate dates so they don't overlap
+        plt.xticks(rotation=45)
+        # Adds grid lines
+        plt.grid()
+        # Prevent cutting labels
+        plt.tight_layout()
+        plt.show()
 
 #Calorie Trend
 def calorie_trend(date):
     daily_df = load_daily_data()
     today_data = daily_df[daily_df["Date"] == date]
+
+    if today_data.empty:
+        print("\nNo daily metrics found for this workout date.")
+        return
+    
     calories = today_data["Calories"].iloc[0]
 
     history_data = daily_df[daily_df["Date"] != date]
@@ -191,9 +196,9 @@ def consistency_tracker(date):
 
         workout_datetime = datetime.strptime(workout_date, "%Y-%m-%d")
 
-        if workout_datetime >= seven_days_ago:
+        if seven_days_ago <= workout_datetime <= today:
             workout_days += 1
-
+            
     print(f"\nYou trained {workout_days} times in the last 7 days.")
 
     if workout_days == 7:
