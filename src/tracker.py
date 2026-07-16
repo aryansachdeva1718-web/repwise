@@ -298,23 +298,6 @@ def get_workout_details(date):
     return workout_details
 
 #----------STREAMLIT ANALYTICS----------
-def get_exercise_progress(exercise):
-
-    workout_df = load_workout_data()
-
-    exercise_data = workout_df[
-        workout_df["Exercise"] == exercise
-    ]
-
-    progress = (
-        exercise_data
-        .groupby("Date")["Weight"]
-        .max()
-        .reset_index()
-    )
-
-    return progress
-
 def get_total_volume():
 
     workout_df = load_workout_data()
