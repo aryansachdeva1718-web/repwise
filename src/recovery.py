@@ -4,32 +4,32 @@ from helpers import *
 
 #----------RECOVERY SYSTEM----------
 #Average volume over last 10 sessions
-def get_avg_volume(exclude_date):
+def get_avg_volume(workout_df, date):
 
-    workout_df = load_workout_data()
+    historical_workouts = workout_df[workout_df["Date"] < date].copy()
 
-    # We don't want current workout affecting historical average
-    workout_df = workout_df[workout_df["Date"] != exclude_date]
+    historical_workouts["Volume"] = (historical_workouts["Reps"] * historical_workouts["Weight"])
 
-    # create volume column for each set
-    workout_df["Volume"] = workout_df["Reps"] * workout_df["Weight"]
+    daily_volume = (
+        historical_workouts
+        .groupby("Date")["Volume"]
+        .sum()
+        .sort_index()
+    )
 
-    daily_volume = workout_df.groupby("Date")["Volume"].sum()
     recent_sessions = daily_volume.tail(10)
 
-    # if insufficient history
     if len(recent_sessions) < 10:
         return None
 
-    avg_volume = recent_sessions.mean()
-    return avg_volume
+    return recent_sessions.mean()
 
 #Today Volume
 def get_today_volume(date):
 
     workout_df = load_workout_data()
 
-    today_workout = workout_df[workout_df["Date"] == date]
+    today_workout = workout_df[workout_df["Date"] == date].copy()
     today_workout["Volume"] = (today_workout["Reps"] * today_workout["Weight"])
 
     total_volume = today_workout["Volume"].sum()
@@ -129,8 +129,7 @@ def recovery_score(date):
     calorie_points = calorie_score(calories, bodyweight)
 
     today_volume = get_today_volume(date)
-    avg_volume = get_avg_volume(date)
-
+    avg_volume = get_avg_volume(workout_df ,date)
     
     if avg_volume is not None:
 
