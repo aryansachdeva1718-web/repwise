@@ -1,183 +1,78 @@
-### Why I Built This
-
-I built this project to combine my passion for fitness and programming while learning software engineering, data analysis, and AI application development. The goal is to build a professional-grade fitness tracker that evolves from a simple workout logger into an intelligent workout recommendation system.
-
 # RepWise
 
-A modular Python fitness tracking application that logs workouts, analyzes training history, tracks recovery, and visualizes workout data through both a Command Line Interface (CLI) and a Streamlit dashboard.
+A modular Python fitness tracking app — workout logging, analytics, recovery scoring, and workout recommendations, via CLI and a Streamlit dashboard. Backed by SQLite.
 
----
+## Features
 
-## Current Features
+**Logging**
+- Log workouts (sets, reps, weight, exercise metadata) via CLI or Streamlit
+- Log daily metrics: sleep, calories, bodyweight
+- Automatic PR detection (multiple PRs per session supported)
 
-### Workout Logging
-- Log workouts through both CLI and Streamlit
-- Log daily metrics (sleep, calories, bodyweight)
-- Select exercises from an exercise database
-- Record sets, reps, and weights
-- Automatic Personal Record (PR) detection
-- Multiple PR detection within a single workout session
-- Automatic workout session grouping by date
+**Dashboard**
+- Workout overview, calendar, clickable history
+- Session breakdowns and summaries
 
-### Dashboard
-- Workout overview with key metrics
-- Interactive workout calendar
-- Clickable workout history with detailed session breakdown
-- Session summary (exercises, sets, volume)
-- Last workout tracking
-- Recent workout summary table
-- Graceful empty-state handling for first-time users
-
-### Analytics
-- Workout statistics
-- Total volume
-- Average session volume
+**Analytics**
+- Total/average session volume, volume trends
 - Exercise progression graphs
-- Workout volume trend
-- Bodyweight trend
+- Bodyweight trends
 
-### Recovery System
-- Daily recovery score (0–100)
-- Sleep score analysis
-- Calorie score analysis
-- Relative fatigue scoring using historical workout volume
-- Automatic scaling when workout history is insufficient
-- Recovery status and training recommendations
-- View recovery data for any logged workout date
+**Recovery**
+- Daily recovery score (0–100) from sleep, calories, and relative fatigue (based on historical volume)
+- Auto-scales when workout history is sparse
+- Training recommendations based on recovery status
 
-### Workout Recommendation
-- Rule-based muscle recommendation engine
-- Neglected muscle detection
-- Muscle priority ranking based on recovery and training frequency
-- Secondary muscle fatigue consideration
-- Training focus with recommendation reasoning
+**Recommendations**
+- Rule-based engine: detects neglected muscles, ranks priority by training frequency, recovery, and secondary muscle fatigue
+- Gives reasoning for each recommendation
 
-### Analytics Backend
-- Workout volume calculation
-- Recent workout aggregation
-- Workout session tracking
-- Exercise session tracking
-- Historical volume analysis
-- Calendar event generation
-- Workout detail retrieval by date
-- Modular data processing using Pandas
+## Database
 
-### Architecture
-- Modular Python architecture
-- Reusable backend shared by CLI and Streamlit
-- Separation of business logic and presentation layer
-- Exercise database with primary and secondary muscle mapping
-- CSV-based persistent storage
-- Structured backend responses for Streamlit integration
+SQLite, relational schema:
+- Tables: `workout_sessions`, `exercises`, `workout_sets` + category/muscle mapping tables
+- Primary/foreign keys, referential integrity, `ON DELETE RESTRICT`, indexes, transactions
 
----
+**Hevy migration pipeline**: CSV → Pandas → validate/clean → normalize → chronological sort → insert (dedup'd, transactional).
 
-## Planned Features
+Current imported data: 224 sessions, 147 exercises, 5,426 sets. Raw workout data only — no precomputed metrics (volume/recovery calculated on demand).
 
-- Muscle Recovery Visualization
-- AI Workout Recommendation Engine
-- Machine Learning-based Recovery Prediction
+## Stack
 
----
+Python, Pandas, SQLite/SQL, Streamlit, Matplotlib
 
-## Project Structure
+## Structure
 
-```text
+```
 repwise/
-├── data/
-│   ├── workout_sets.csv
-│   ├── daily_metrics.csv
-│
-├── project_docs/
-│   ├── progress.md
-│   ├── learning.md
-│
-├── screenshots/
-│
+├── data/                 # CSVs (daily metrics, Hevy exports)
+├── database/             # connection.py, schema.py
+├── importers/             # migrate.py (Hevy import pipeline)
 ├── src/
-│   ├── app.py                 # Streamlit entry point
-│   ├── tracker.py             # Workout logging + dashboard helpers
-│   ├── recovery.py            # Recovery scoring
-│   ├── helpers.py
-│   ├── muscle_history.py
+│   ├── app.py             # Streamlit entry
+│   ├── main.py            # CLI entry
+│   ├── tracker.py
+│   ├── recovery.py
 │   ├── recommendation_engine.py
 │   ├── exercise_database.py
-│   └── pages/
-│       ├── 00_Dashboard.py
-│       ├── 01_Log_Workout.py
-│       ├── 02_Log_Daily_Metrics.py
-│       ├── 03_Analytics.py
-│       ├── 04_Recovery_Score.py
-│       └── 05_Workout_Recommendation.py
-│
-├── requirements.txt
-└── README.md
+│   └── pages/              # Streamlit pages (dashboard, logging, analytics, recovery, recommendations)
+├── tools/                 # DB check/query scripts
+└── repwise.db
 ```
 
----
-
-## Tech Stack
-
-- Python
-- Pandas
-- Streamlit
-- Matplotlib
-- CSV Storage
-- Git
-- GitHub
-
----
-
-## How to Run
-
-Clone the repository
+## Run it
 
 ```bash
 git clone https://github.com/aryansachdeva1718-web/repwise.git
-```
-
-Install dependencies
-
-```bash
+cd repwise
 pip install -r requirements.txt
-```
-
-Run the Streamlit application
-
-```bash
 py -m streamlit run src/app.py
 ```
 
----
+## Status
 
-## Screenshots
+**Done:** workout tracking, Streamlit dashboard, analytics, recovery scoring, rule-based recommendations, SQLite schema, full Hevy data migration.
 
-*(To be updated as new pages are completed.)*
+**Next:** move logging/analytics/recovery/recommendations to be fully DB-backed, muscle recovery visualization, then AI/ML-based recommendations and recovery prediction.
 
-- Dashboard
-- Workout Logging
-- Recovery
-- Workout Recommendation
-
----
-
-## Current Development Status
-
-The project is actively being built from scratch while documenting the complete development process.
-
-Upcoming milestones:
-
-- AI Features
-
----
-
-## Future Improvements
-
-- Authentication and user accounts
-- Cloud database integration
-- AI workout recommendations
-- Personalized recovery suggestions
-- Long-term performance forecasting
-- Mobile-friendly UI
-- Export workout history
-- Docker deployment
+**Later:** auth, cloud DB, forecasting, mobile UI, export, Docker/deployment.

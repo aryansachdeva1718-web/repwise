@@ -359,3 +359,76 @@ The UI never accesses CSV files directly. All data retrieval remains inside `tra
 # Learnings
 
 Today's session focused on integrating backend systems with Streamlit. The biggest takeaway was understanding how returning structured data from backend functions simplifies frontend development and keeps responsibilities clearly separated.
+
+# July 28 – August 8
+
+## Focus: Database Architecture, SQL and Hevy Data Migration
+
+This phase focused on moving RepWise from CSV-based persistent storage toward a structured SQLite database while simultaneously developing practical SQL knowledge.
+
+---
+
+## Database Architecture
+
+Designed the initial SQLite architecture for RepWise.
+
+Created a relational structure separating:
+
+- workout sessions
+- exercises
+- workout sets
+- exercise categories
+- primary muscles
+- secondary muscles
+
+Established relationships between the tables using primary and foreign keys.
+
+### Concepts Learned
+
+- Primary keys
+- Foreign keys
+- One-to-one relationships
+- One-to-many relationships
+- Many-to-one relationships
+- Referential integrity
+- Foreign key constraints
+- `ON DELETE RESTRICT`
+- Database schema vs database instance
+- Indexes
+- SQLite `PRAGMA` statements
+
+---
+
+## SQL Theory
+
+Completed the major SQL concepts required for the current RepWise database work.
+
+### Learned / Revised
+
+- Joins
+- Outer joins
+- CTEs
+- Window functions
+- Transactions
+- `ORDER BY`
+- `GROUP BY`
+- Aggregations
+- Foreign-key related queries
+- Database integrity checks
+
+The focus was intentionally kept practical rather than spending excessive time on SQL theory.
+
+The goal was to understand enough SQL to begin learning SQLite directly while implementing RepWise.
+
+---
+
+## SQLite Architecture
+
+Created the RepWise SQLite database and implemented the initial schema.
+
+Learned how Python communicates with SQLite through:
+
+```python
+conn = get_connection()
+cursor = conn.cursor()
+cursor.execute(...)

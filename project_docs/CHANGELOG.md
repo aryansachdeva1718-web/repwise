@@ -12,3 +12,6 @@ v0.4
 
 v0.5
 - Streamlit UI
+
+v0.6
+- Added SQLite database architecture

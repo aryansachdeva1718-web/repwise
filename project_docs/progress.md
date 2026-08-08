@@ -210,7 +210,7 @@ Allow training multiple muscles.
 
 Convert recommended muscles into actual exercise suggestions.
 
-# Streamlit v1 Completion
+# Streamlit - v0.5 Completion
 
 ## Overview
 
@@ -325,3 +325,53 @@ Remaining work before AI integration:
 - Improved responsiveness
 - Final screenshots
 - README update
+
+# SQL - v0.6 Completion
+
+## Status
+
+✅ Completed — August 8, 2026
+
+## Goal
+
+Move RepWise from CSV-based persistent workout storage toward a structured SQLite database capable of handling the complete Hevy workout history.
+
+---
+
+## Database Architecture
+
+Implemented SQLite database architecture containing:
+
+- `workout_sessions`
+- `exercises`
+- `workout_sets`
+- exercise categories
+- primary muscle mappings
+- secondary muscle mappings
+
+Established primary-key and foreign-key relationships between the tables.
+
+---
+
+## Hevy Migration
+
+Built a complete Hevy CSV → SQLite migration pipeline.
+
+### Pipeline
+
+```text
+Hevy CSV
+   ↓
+Pandas loading
+   ↓
+Column validation
+   ↓
+Data cleaning
+   ↓
+Datetime conversion
+   ↓
+Chronological sorting
+   ↓
+Session grouping
+   ↓
+SQLite insertion
