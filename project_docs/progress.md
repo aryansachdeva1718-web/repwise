@@ -375,3 +375,4 @@ Chronological sorting
 Session grouping
    ↓
 SQLite insertion
+

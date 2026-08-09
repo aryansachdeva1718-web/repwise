@@ -432,3 +432,47 @@ Learned how Python communicates with SQLite through:
 conn = get_connection()
 cursor = conn.cursor()
 cursor.execute(...)
+```
+
+---
+
+# August 9, 2026
+
+## Focus: SQLite Database Integration — Query and Transaction Layer
+
+### Tasks Completed
+
+- Created the database query/data-access layer in `database/queries.py`.
+- Tested database queries for workout sessions and workout history.
+- Added exercise history retrieval.
+- Added recent workout retrieval.
+- Added daily metrics retrieval.
+- Added SQLite write functions.
+- Tested workout session and workout set insertion.
+- Tested daily metrics insertion and retrieval.
+- Built a transaction-based workout write pipeline.
+- Tested successful transactions.
+- Tested transaction rollback.
+- Cleaned all temporary test data after testing.
+
+---
+
+## Concepts Learned
+
+### 1. Database Access Layer
+
+SQL queries should not be scattered throughout `tracker.py`, `recovery.py`, Streamlit pages, and other application modules.
+
+Instead:
+
+```text
+Application
+    ↓
+queries.py
+    ↓
+SQLite
+```
+
+
+
+
