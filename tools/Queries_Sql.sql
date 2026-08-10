@@ -1,7 +1,3 @@
-SELECT
-    session_id,
-    title,
-    start_time
+SELECT *
 FROM workout_sessions
-ORDER BY session_id DESC
-LIMIT 5;
+WHERE session_id IN (225, 226, 227);

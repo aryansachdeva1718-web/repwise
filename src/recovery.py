@@ -1,6 +1,8 @@
 import pandas as pd
-import matplotlib.pyplot as plt
-from helpers import *
+from database.queries import (
+    get_workout_history,
+    get_daily_metrics_history
+)
 
 #----------RECOVERY SYSTEM----------
 #Average volume over last 10 sessions
@@ -27,7 +29,7 @@ def get_avg_volume(workout_df, date):
 #Today Volume
 def get_today_volume(date):
 
-    workout_df = load_workout_data()
+    workout_df = get_workout_history()
 
     today_workout = workout_df[workout_df["Date"] == date].copy()
     today_workout["Volume"] = (today_workout["Reps"] * today_workout["Weight"])
@@ -115,7 +117,8 @@ def interpret_score(score):
 
 #Recovery Score
 def recovery_score(date):
-    daily_df = load_daily_data()
+    workout_df = get_workout_history()
+    daily_df = get_daily_metrics_history()
     today_data = daily_df[daily_df["Date"] == date]
 
     if today_data.empty:

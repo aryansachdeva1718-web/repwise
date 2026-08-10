@@ -2,204 +2,271 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
 from helpers import *
+from database.queries import (
+    save_workout_session,
+    save_daily_metrics,
+    get_workout_history,
+    get_daily_metrics_history,
+    get_exercise_history,
+    get_workout_dates as db_get_workout_dates,
+    get_recent_workouts as db_get_recent_workouts,
+    get_workout_details as db_get_workout_details,
+    get_bodyweight_history as db_get_bodyweight_history,
+    get_all_exercises as db_get_all_exercises
+)
 
 #----------DAILY METRICS FUNCTION----------
 def log_daily_metrics(date, sleep, calories, bodyweight):
 
-    daily_df = load_daily_data()
-
-    daily_df = daily_df[daily_df["Date"] != date]
-
-    new_daily_entry = {
-        "Date": date,
-        "Sleep": sleep,
-        "Calories": calories,
-        "Bodyweight": bodyweight
-    }
-
-    daily_df = pd.concat(
-        [daily_df, pd.DataFrame([new_daily_entry])],
-        ignore_index=True
+    save_daily_metrics(
+        date=date,
+        sleep=sleep,
+        calories=calories,
+        bodyweight=bodyweight
     )
-
-    daily_df = daily_df.sort_values("Date").reset_index(drop=True)
-
-    daily_df.to_csv(daily_metrics_file, index=False)
 
 #----------WORKOUT INPUT FUNCTION----------
 def log_workout():
+
     print("\n--- WORKOUT LOGGING ---")
 
-    workout_df = load_workout_data()
     date = get_date()
 
+    start_time = datetime.now().strftime(
+        "%Y-%m-%d %H:%M:%S"
+    )
+
+    title = input("Enter workout title: ")
+
+    exercises = []
+
     while True:
-        
+
         exercise = select_exercise()
-        set_number = int(input("Enter total sets: "))
-        
+
+        set_number = int(
+            input("Enter total sets: ")
+        )
+
+        reps_list = []
+        weight_list = []
+
         for i in range(set_number):
-            print(f"\nSet {i+1}")
 
-            reps = int(input("Enter reps: "))
-            weight = float(input("Enter weight: "))
+            print(f"\nSet {i + 1}")
 
-            exercise_history = workout_df[workout_df["Exercise"] == exercise]
+            reps = int(
+                input("Enter reps: ")
+            )
 
-            if exercise_history.empty:
-                print("First time doing this exercise")
-            else:
-                max_weight = exercise_history["Weight"].max()
-                if weight > max_weight:
-                     print(f"New {exercise} PR: Previous {max_weight} kg -> Current {weight} kg ")
+            weight = float(
+                input("Enter weight: ")
+            )
 
-            new_workout_entry = {
-                "Date": date,
-                "Exercise": exercise,
-                "Set": i + 1,
-                "Reps": reps,
-                "Weight": weight
-            }
+            reps_list.append(reps)
+            weight_list.append(weight)
 
-            workout_df = pd.concat( [workout_df, pd.DataFrame([new_workout_entry])],
-            ignore_index=True)
+        exercises.append({
+            "exercise": exercise,
+            "reps": reps_list,
+            "weights": weight_list
+        })
 
-        another = input("Add another exercise? (y/n): ")
+        another = input(
+            "Add another exercise? (y/n): "
+        )
 
         if another.lower() != "y":
             break
-    
-    workout_df.to_csv(workout_sets_file, index=False)
-    workout_summary(date) 
-    choice = input("\nDo you want to see progress graphs? (y/n): ")
 
-    if choice.lower() in ["y", "yes"]:
-        plot_progress(date) 
+    end_time = datetime.now().strftime(
+        "%Y-%m-%d %H:%M:%S"
+    )
 
-    print("\nWorkout saved successfully.\n")
-    print(workout_df.tail(10))
+    try:
+
+        session_id, pr_messages = save_workout_session(
+            title=title,
+            start_time=start_time,
+            end_time=end_time,
+            exercises=exercises
+        )
+
+    except Exception as e:
+
+        print("\nWorkout could not be saved.")
+        print(f"Error: {e}")
+
+        return None
+
+    for message in pr_messages:
+        print(message)
+
+    print(
+        f"\nWorkout saved successfully."
+        f" Session ID: {session_id}\n"
+    )
+
     return date
 
-def save_workout(date, exercise, reps_list, weight_list):
-    workout_df = load_workout_data()
-    pr_messages = []
+def save_workout(
+    date,
+    exercise,
+    reps_list,
+    weight_list,
+    session_id=None
+):
+    if session_id is None:
+        raise ValueError(
+            "session_id is required when saving a workout."
+        )
 
-    for set_number, (reps, weight) in enumerate(zip(reps_list, weight_list), start=1):
-            exercise_history = workout_df[workout_df["Exercise"] == exercise]
-
-            if exercise_history.empty:
-                max_weight = 0
-                if set_number == 1:
-                    pr_messages.append(f"First time doing {exercise}!")
-
-            else:
-                max_weight = exercise_history["Weight"].max()
-
-            if weight > max_weight:
-                if max_weight == 0:
-                    pr_messages.append(f"🏆 Starting PR for {exercise}: {weight} kg")
-                else:
-                    pr_messages.append(f"🏆 New {exercise} PR: Previous {max_weight} kg → Current {weight} kg")
-
-            new_workout_entry = {
-            "Date": str(date),
-            "Exercise": exercise,
-            "Set": set_number,
-            "Reps": reps,
-            "Weight": weight}
-
-            workout_df = pd.concat([workout_df, pd.DataFrame([new_workout_entry])],ignore_index=True)
-
-    workout_df.to_csv(workout_sets_file, index=False)
-    return pr_messages
+    return save_workout_session(
+        title="Workout",
+        start_time=f"{date} 00:00:00",
+        exercises=[
+            {
+                "exercise": exercise,
+                "reps": reps_list,
+                "weights": weight_list
+            }
+        ]
+    )
 
 #----------ANALYTICS & GRAPHS----------
 def workout_summary(date):
-    workout_df = load_workout_data()
-    today_data = workout_df[workout_df["Date"] == date]
+    workout_df = get_workout_history()
 
+    if workout_df.empty:
+        return None
+
+    today_data = workout_df[workout_df["Date"] == date].copy()
+
+    if today_data.empty:
+        return None
+
+    today_data["Volume"] = (today_data["Weight"] * today_data["Reps"])
     total_sets = len(today_data)
     exercise_count = today_data["Exercise"].nunique()
-    today_data["Volume"] = (today_data["Weight"] * today_data["Reps"])
     total_volume = today_data["Volume"].sum()
+    valid_weight_data = today_data[today_data["Weight"].notna()]
 
-    heaviest_row = today_data.loc[today_data["Weight"].idxmax()]
-    heaviest_exercise = heaviest_row["Exercise"]
-    heaviest_weight = heaviest_row["Weight"]
+    if valid_weight_data.empty:
+        heaviest_exercise = None
+        heaviest_weight = None
+    else:
+        heaviest_row = valid_weight_data.loc[valid_weight_data["Weight"].idxmax()]
+        heaviest_exercise = heaviest_row["Exercise"]
+        heaviest_weight = heaviest_row["Weight"]
 
     return {
-    "exercise_count": exercise_count,
-    "total_sets": total_sets,
-    "total_volume": total_volume,
-    "heaviest_exercise": heaviest_exercise,
-    "heaviest_weight": heaviest_weight
-}
+        "exercise_count": exercise_count,
+        "total_sets": total_sets,
+        "total_volume": total_volume,
+        "heaviest_exercise": heaviest_exercise,
+        "heaviest_weight": heaviest_weight
+    }
 
 def plot_progress(date):
-    workout_df = load_workout_data()
+    workout_df = get_workout_history()
+
+    if workout_df.empty:
+        return
+
     today_data = workout_df[workout_df["Date"] == date]
+
+    if today_data.empty:
+        return
 
     today_exercises = today_data["Exercise"].unique()
 
     for exercise in today_exercises:
-        exercise_data = workout_df[workout_df["Exercise"] == exercise]
 
-        progress = exercise_data.groupby("Date")["Weight"].max()
+        exercise_data = workout_df[workout_df["Exercise"] == exercise].copy()
+
+        # Ignore sets where weight is NULL
+        exercise_data = exercise_data[exercise_data["Weight"].notna()]
+
+        if exercise_data.empty:
+            continue
+
+        progress = (exercise_data.groupby("Date")["Weight"].max())
 
         plt.figure()
-        plt.plot(progress.index,progress.values,marker="o")
+        plt.plot(
+            progress.index,
+            progress.values,
+            marker="o"
+        )
+
         plt.title(f"{exercise} Progress")
         plt.xlabel("Date")
         plt.ylabel("Max Weight (kg)")
-        # Rotate dates so they don't overlap
         plt.xticks(rotation=45)
-        # Adds grid lines
         plt.grid()
-        # Prevent cutting labels
         plt.tight_layout()
         plt.show()
 
 #Calorie Trend
 def calorie_trend(date):
-    daily_df = load_daily_data()
+    daily_df = get_daily_metrics_history()
+
+    if daily_df.empty:
+        print("\nNo daily metrics found.")
+        return
+
     today_data = daily_df[daily_df["Date"] == date]
 
     if today_data.empty:
         print("\nNo daily metrics found for this workout date.")
         return
-    
+
     calories = today_data["Calories"].iloc[0]
 
     history_data = daily_df[daily_df["Date"] != date]
+
     if len(history_data) < 3:
         print("\nNot enough history for calorie trend analysis.")
         return
+
     recent_data = history_data.tail(3)
+
     avg_calories = recent_data["Calories"].mean()
 
     if calories > avg_calories * 1.20:
-        print("\nCalorie intake is significantly higher than your recent average.")
+        print("\nCalorie intake is significantly "
+            "higher than your recent average.")
+
     elif calories < avg_calories * 0.80:
-        print("\nCalorie intake is significantly lower than your recent average.")
+        print("\nCalorie intake is significantly "
+            "lower than your recent average.")
+
     else:
-        print("\nCalorie intake is consistent with your recent average.")
+        print("\nCalorie intake is consistent "
+            "with your recent average.")
 
 def consistency_tracker(date):
 
-    workout_df = load_workout_data()
-    unique_dates = workout_df["Date"].unique()
+    workout_dates = get_workout_dates()
+
+    if not workout_dates:
+        print("\nNo workouts found.")
+        return
+
     today = datetime.strptime(date, "%Y-%m-%d")
     seven_days_ago = today - timedelta(days=6)
 
     workout_days = 0
-    for workout_date in unique_dates:
 
-        workout_datetime = datetime.strptime(workout_date, "%Y-%m-%d")
+    for workout_date in workout_dates:
+
+        workout_datetime = datetime.strptime(workout_date[:10],"%Y-%m-%d")
 
         if seven_days_ago <= workout_datetime <= today:
             workout_days += 1
-            
-    print(f"\nYou trained {workout_days} times in the last 7 days.")
+
+    print(f"\nYou trained {workout_days} times "
+        "in the last 7 days.")
 
     if workout_days == 7:
         print("Consistency: Excellent 🔥")
@@ -218,52 +285,21 @@ def consistency_tracker(date):
 
 #----------DASHBOARD FUNCTIONS----------
 def get_workout_dates():
-    workout_df = load_workout_data()
-
-    if workout_df.empty:
-        return []
-
-    workout_dates = (workout_df["Date"].drop_duplicates().sort_values().tolist())
-
-    return workout_dates
+    return db_get_workout_dates()
 
 def get_total_workout_sessions():
     return len(get_workout_dates())
 
 def get_total_exercises_logged():
-    workout_df = load_workout_data()
+    workout_df = get_workout_history()
 
     if workout_df.empty:
         return 0
 
-    exercise_sessions = (workout_df[["Date", "Exercise"]].drop_duplicates())
-    return exercise_sessions.shape[0]
+    return workout_df["Exercise"].nunique()
 
 def get_recent_workouts():
-    workout_df = load_workout_data()
-
-    summary = (
-        workout_df
-        .groupby(["Date", "Exercise"])
-        .agg({
-            "Weight": "max",
-            "Set": "count"
-        })
-        .reset_index()
-        .rename(
-            columns={
-            "Weight": "Max Weight",
-            "Set": "Total Sets"
-            })
-        .sort_values(by="Date", ascending=False)
-        .head(5)
-        .reset_index(drop=True)
-        )
-    
-    summary["Date"] = pd.to_datetime(summary["Date"])
-    summary["Date"] = summary["Date"].dt.strftime("%d %b %Y")
-
-    return summary
+    return db_get_recent_workouts(limit=5)
 
 def get_last_workout_date():
     workout_dates = get_workout_dates()
@@ -271,7 +307,7 @@ def get_last_workout_date():
     if len(workout_dates) == 0:
         return "No Workouts"
 
-    return (pd.to_datetime(workout_dates[-1]).strftime("%d %b %Y"))
+    return pd.to_datetime(workout_dates[-1]).strftime("%d %b %Y")
 
 def get_calendar_events():
     workout_dates = get_workout_dates()
@@ -288,19 +324,13 @@ def get_calendar_events():
 
     return events
 
-def get_workout_details(date):
-    workout_df = load_workout_data()
-
-    if workout_df.empty:
-        return workout_df
-    
-    workout_details = workout_df[workout_df["Date"] == str(date)]
-    return workout_details
+def get_workout_details(session_id):
+    return db_get_workout_details(session_id)
 
 #----------STREAMLIT ANALYTICS----------
 def get_total_volume():
 
-    workout_df = load_workout_data()
+    workout_df = get_workout_history()
 
     if workout_df.empty:
         return 0
@@ -311,26 +341,24 @@ def get_total_volume():
 
 def get_average_session_volume():
 
-    workout_df = load_workout_data()
+    workout_df = get_workout_history()
 
     if workout_df.empty:
         return 0
 
     workout_df["Volume"] = workout_df["Weight"] * workout_df["Reps"]
 
-    daily_volume = (
+    session_volume = (
         workout_df
-        .groupby("Date")["Volume"]
+        .groupby("Session_ID")["Volume"]
         .sum()
     )
 
-    avg_volume = daily_volume.mean()
-
-    return round(avg_volume)
+    return round(session_volume.mean())
 
 def get_volume_history():
 
-    workout_df = load_workout_data()
+    workout_df = get_workout_history()
 
     if workout_df.empty:
         return workout_df
@@ -349,35 +377,26 @@ def get_volume_history():
 
 def get_bodyweight_history():
 
-    daily_df = load_daily_data()
+    daily_df = db_get_bodyweight_history()
 
     if daily_df.empty:
         return daily_df
-    
-    daily_df["Date"] = pd.to_datetime(daily_df["Date"])
+
+    daily_df["Date"] = pd.to_datetime(
+        daily_df["Date"]
+    )
+
     return daily_df[["Date", "Bodyweight"]]
 
 def get_all_exercises():
-
-    workout_df = load_workout_data()
-
-    if workout_df.empty:
-        return []
-
-    exercises = sorted(workout_df["Exercise"].unique())
-
-    return exercises
+    return db_get_all_exercises()
 
 def get_exercise_progress(exercise):
 
-    workout_df = load_workout_data()
+    exercise_data = get_exercise_history(exercise)
 
-    if workout_df.empty:
-        return workout_df
-
-    exercise_data = workout_df[
-        workout_df["Exercise"] == exercise
-    ]
+    if exercise_data.empty:
+        return exercise_data
 
     progress = (
         exercise_data
@@ -386,26 +405,29 @@ def get_exercise_progress(exercise):
         .reset_index()
     )
 
-    progress["Date"] = pd.to_datetime(progress["Date"])
+    progress["Date"] = pd.to_datetime(
+        progress["Date"]
+    )
+
     return progress
 
 def get_heaviest_lift():
 
-    workout_df = load_workout_data()
+    workout_df = get_workout_history()
 
     if workout_df.empty:
         return None
 
-    row = workout_df.loc[workout_df["Weight"].idxmax()]
+    valid_weight_data = workout_df[
+        workout_df["Weight"].notna()
+    ]
+
+    if valid_weight_data.empty:
+        return None
+
+    row = valid_weight_data.loc[
+        valid_weight_data["Weight"].idxmax()
+    ]
 
     return row["Exercise"], row["Weight"]
-
-
-
-    
-    
-
-
-
-
 

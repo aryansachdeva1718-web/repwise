@@ -473,6 +473,62 @@ queries.py
 SQLite
 ```
 
+## Aug 10, 2026 — Backend Data Migration (CSV → SQLite)
 
+### What changed
+Migrated `tracker.py`, `recovery.py`, `recommendation_engine.py` off direct CSV access onto DB-backed query functions.
+
+### Key function migrations
+- `load_workout_data()`, `load_daily_data()` → `get_workout_history()`, `get_daily_metrics_history()`, `get_exercise_history()`
+- Analytics now DB-backed: `get_total_volume()`, `get_average_session_volume()`, `get_volume_history()`, `get_bodyweight_history()`, `get_all_exercises()`, `get_exercise_progress()`, `get_heaviest_lift()`
+- Recommendation engine now pulls history via `get_workout_history()` instead of reading `workout_sets.csv` directly
+
+### Function semantics worth remembering
+- `get_average_session_volume()` = average of **per-workout totals** (not average of individual sets). Answers "avg volume per workout session."
+- `get_volume_history()` = date → total workout volume (for trend plotting).
+- `get_heaviest_lift()` = scans full history, returns max valid weight + exercise.
+
+### Pipelines unchanged (logic-wise, just data source swapped)
+**Recovery:**
+
+Daily Metrics → Sleep Score + Calorie Score + Workout Fatigue Score → Recovery Score → Interpretation
+
+Fatigue calc still uses last 10 sessions; skips scoring if insufficient history.
+
+**Recommendation:**
+
+Workout History → Exercise→Muscle Mapping → Last Trained Muscle → Days Since Training
+→ Recently Trained Filter → Overdue Muscle Check → Priority Scores → Recommendation
+
+Primary/secondary muscle involvement still tracked separately.
+
+### Cleanup
+- `helpers.py` stripped of CSV-loading responsibility.
+- Confirmed `load_daily_data()` was an unused/dead definition, not an active dependency.
+- `pd.read_csv(...)` / `DAILY_METRICS_FILE` no longer in active app flow.
+
+### Big lesson
+Migration ≠ swapping one line (`pd.read_csv(...)` → `get_workout_history()`). The real win is that higher-level modules no longer need to know **where** data lives:
+
+UI → Business Logic → Database Query Layer → SQLite
+
+DB layer = single source of truth. If we ever move SQLite → Postgres later, only the query layer changes — not tracker/recovery/recommendation/Streamlit/CLI.
+
+### Status
+| Component | Status |
+|---|---|
+| Backend migration | ✅ Complete |
+| CSV cleanup | ✅ Complete |
+| Tracker / Recovery / Recommendation | ✅ Migrated |
+| Helpers | ✅ Cleaned |
+| Streamlit | ✅ Connected |
+| Testing | ⏳ Next session |
+
+### Next session
+Systematic end-to-end testing (not new features):
+
+Database → Queries → Tracker → Recovery → Recommendation → Streamlit UI → E2E workflow
+
+Cover normal + edge cases — confirms migration works as a *system*, not just per-function.
 
 

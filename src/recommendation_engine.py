@@ -1,10 +1,10 @@
-import pandas as pd
-from exercise_database import exercise_database
-from helpers import workout_sets_file
 from datetime import datetime
 
+from exercise_database import exercise_database
+from database.queries import get_workout_history
+
 def get_last_trained_muscles():
-    workout_df = pd.read_csv(workout_sets_file)
+    workout_df = get_workout_history()
     muscle_history = {}
 
     for _, row in workout_df.iterrows():

@@ -444,3 +444,69 @@ def save_daily_metrics(date, sleep, calories, bodyweight):
 
     conn.commit()
     conn.close()
+
+def get_daily_metrics_history():
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT
+            date,
+            sleep,
+            calories,
+            bodyweight
+        FROM daily_metrics
+        ORDER BY date;
+    """)
+
+    rows = cursor.fetchall()
+
+    columns = [
+        "Date",
+        "Sleep",
+        "Calories",
+        "Bodyweight"
+    ]
+
+    conn.close()
+
+    return pd.DataFrame(rows, columns=columns)
+
+def get_bodyweight_history():
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT
+            date,
+            bodyweight
+        FROM daily_metrics
+        ORDER BY date;
+    """)
+
+    rows = cursor.fetchall()
+
+    columns = [
+        "Date",
+        "Bodyweight"
+    ]
+
+    conn.close()
+
+    return pd.DataFrame(rows, columns=columns)
+
+def get_all_exercises():
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT name
+        FROM exercises
+        ORDER BY name;
+    """)
+
+    rows = cursor.fetchall()
+
+    conn.close()
+
+    return [row[0] for row in rows]
