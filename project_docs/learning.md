@@ -531,4 +531,282 @@ Database → Queries → Tracker → Recovery → Recommendation → Streamlit U
 
 Cover normal + edge cases — confirms migration works as a *system*, not just per-function.
 
+# August 11
 
+## Focus: SQLite + Streamlit Integration Debugging
+
+### What We Tested
+
+Started testing the migrated SQLite backend through the Streamlit application instead of relying only on isolated backend tests.
+
+The first issue appeared when running Streamlit:
+
+```
+streamlit : The term 'streamlit' is not recognized
+```
+
+The application was then launched through the correct Python environment.
+
+### Dashboard Calendar Debugging
+
+When clicking a workout on the dashboard calendar, the application initially displayed:
+
+```
+No workout found for this date.
+```
+
+The problem was caused by a mismatch between the calendar event data and the new SQLite session-based architecture.
+
+The dashboard originally attempted to retrieve workout details using the selected date, while:
+
+```
+get_workout_details(session_id)
+```
+
+expects a `session_id`.
+
+### Key Learning
+
+The calendar should identify a workout session rather than directly querying workout data by date.
+
+The relationship is:
+
+```
+Calendar Event
+      ↓
+session_id
+      ↓
+workout_sessions
+      ↓
+workout_sets
+      ↓
+Workout Details
+```
+
+### Debugging Process
+
+The calendar callback structure was inspected when errors appeared involving:
+
+- `extendedProps`
+- `id`
+
+The event data was adjusted until the dashboard correctly retrieved the session ID and passed it into `get_workout_details(session_id)`.
+
+### Important Architecture Insight
+
+The migration changed the application's fundamental data relationship.
+
+Previously:
+
+```
+Date → Workout Data
+```
+
+Now:
+
+```
+Date → Workout Session → Workout Sets
+```
+
+This is a stronger structure because one session can contain multiple exercises while maintaining a single workout identity.
+
+### Biggest Takeaway
+
+Debugging database-backed applications requires tracing the entire data flow instead of fixing only the visible error.
+
+```
+UI
+↓
+Calendar callback
+↓
+Session ID
+↓
+SQL query
+↓
+Workout sets
+↓
+DataFrame
+↓
+UI
+```
+
+---
+
+# August 12
+
+## Focus: End-to-End Workout Logging Testing
+
+### Goal
+
+Validate the complete Streamlit workout logging workflow after the SQLite migration.
+
+The objective was to test the actual application rather than only individual functions.
+
+### Exercise Database Debugging
+
+The workout logger initially displayed only 22 exercises even though the new `exercise_database.py` contained 50.
+
+Investigated the imported module directly using:
+
+```python
+import exercise_database as exercise_db
+
+exercise_db.__file__
+len(exercise_db.exercise_database)
+```
+
+Confirmed that Streamlit was loading `src/exercise_database.py` and that it contained all 50 intended exercises.
+
+The earlier 22-exercise list was caused by stale/import state rather than the final exercise database itself.
+
+### Exercise Name Consistency
+
+Confirmed that the new exercise catalog uses the exact names expected by SQLite.
+
+Examples:
+
+- Leg Press (Machine)
+- Bench Press (Barbell)
+- Seated Leg Curl (Machine)
+
+This is important because workout logging resolves:
+
+```
+Exercise Name
+      ↓
+SQLite exercise lookup
+      ↓
+exercise_id
+```
+
+Using inconsistent names such as `Leg Press` instead of `Leg Press (Machine)` causes the database lookup to fail.
+
+### Session ID Architecture
+
+Reviewed the relationship between workout sessions and exercises.
+
+A `session_id` belongs to the entire workout session, not to an individual exercise.
+
+Example:
+
+```
+Session 228
+│
+├── Leg Press (Machine)
+│   ├── Set 1
+│   ├── Set 2
+│   └── Set 3
+│
+└── Seated Leg Curl (Machine)
+    ├── Set 1
+    ├── Set 2
+    └── Set 3
+```
+
+This confirmed that multiple exercises can correctly share one `session_id`.
+
+### `save_workout_session()` Understanding
+
+Reviewed the database save pipeline:
+
+```
+save_workout()
+      ↓
+save_workout_session()
+      ↓
+create_workout_session()
+      ↓
+session_id
+      ↓
+exercise name → exercise_id
+      ↓
+add_workout_set()
+      ↓
+commit
+```
+
+The entire workout is saved inside one transaction.
+
+If an error occurs, `conn.rollback()` prevents a partially saved workout.
+
+### Successful Tests
+
+**Test 1 — Single Exercise**
+
+Logged: Leg Press (Machine), 3 sets
+
+Result:
+
+```
+Workout logged successfully!
+Session ID: 227
+```
+
+**Test 2 — Multiple Exercises**
+
+Logged:
+- Leg Press (Machine), 3 sets
+- Seated Leg Curl (Machine), 3 sets
+
+Result:
+
+```
+Workout logged successfully!
+Session ID: 228
+```
+
+This successfully demonstrated that multiple exercises can be stored under one workout session.
+
+### Final Verification
+
+The dashboard calendar successfully retrieved and displayed the workout details after the earlier session-ID debugging.
+
+The complete workflow is now:
+
+```
+Streamlit UI
+    ↓
+Exercise Selection
+    ↓
+Workout Session Creation
+    ↓
+session_id
+    ↓
+Exercise Name → exercise_id
+    ↓
+Workout Sets
+    ↓
+SQLite Transaction
+    ↓
+Dashboard Calendar
+    ↓
+Session Details
+```
+
+### Cleanup
+
+The two test sessions created during validation were:
+
+- Session 227
+- Session 228
+
+These were temporary testing records and were identified for deletion without removing the underlying exercise records.
+
+### Biggest Takeaway
+
+The SQLite migration is no longer theoretical.
+
+The application has now been tested through the actual Streamlit interface, including:
+
+- Exercise selection
+- Set input
+- SQLite exercise lookup
+- Session creation
+- Multiple exercises per session
+- Set insertion
+- Transaction handling
+- Session retrieval
+- Calendar integration
+- Workout detail display
+
+The core v0.7 workout workflow has reached the integration-testing stage.

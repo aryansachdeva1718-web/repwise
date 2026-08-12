@@ -26,8 +26,11 @@ with col3:
 
     if latest_date:
         recovery = recovery_score(latest_date)
-        recovery_value = f"{round(recovery['score'])}/100"
 
+        if recovery is not None:
+            recovery_value = f"{round(recovery['score'])}/100"
+        else:
+            recovery_value = "N/A"
     else:
         recovery_value = "-"
 
@@ -88,12 +91,53 @@ calendar_state = calendar(
 )
 
 selected_date = None
+session_id = None
 
-if (calendar_state and calendar_state["callback"] == "eventClick"):
-    selected_date = calendar_state["eventClick"]["event"]["start"]
+if calendar_state and calendar_state["callback"] == "eventClick":
 
-if selected_date:
-    details = get_workout_details(selected_date)
+    event = calendar_state["eventClick"]["event"]
+
+    selected_date = pd.to_datetime(
+        event["start"]
+    ).strftime("%Y-%m-%d")
+
+    workout_df = get_workout_history()
+
+    if not workout_df.empty:
+
+        workout_df["Date"] = pd.to_datetime(
+            workout_df["Date"]
+        ).dt.strftime("%Y-%m-%d")
+
+        matching_sessions = (
+            workout_df[
+                workout_df["Date"] == selected_date
+            ]["Session_ID"]
+            .drop_duplicates()
+            .tolist()
+        )
+
+        if matching_sessions:
+            session_id = matching_sessions[0]
+
+
+if session_id is not None:
+
+    details = get_workout_details(session_id)
+
+    if details.empty:
+        st.info("No workout found for this session.")
+
+    else:
+        formatted_date = pd.to_datetime(
+            selected_date
+        ).strftime("%d %b %Y")
+
+        st.subheader(
+            f"📋 Workout Details - {formatted_date}"
+        )
+
+        # your existing details display continues here
 
     if details.empty:
         st.info("No workout found for this date.")

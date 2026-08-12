@@ -109,28 +109,12 @@ def log_workout():
 
     return date
 
-def save_workout(
-    date,
-    exercise,
-    reps_list,
-    weight_list,
-    session_id=None
-):
-    if session_id is None:
-        raise ValueError(
-            "session_id is required when saving a workout."
-        )
+def save_workout(date, exercises):
 
     return save_workout_session(
         title="Workout",
         start_time=f"{date} 00:00:00",
-        exercises=[
-            {
-                "exercise": exercise,
-                "reps": reps_list,
-                "weights": weight_list
-            }
-        ]
+        exercises=exercises
     )
 
 #----------ANALYTICS & GRAPHS----------
@@ -319,6 +303,17 @@ def get_calendar_events():
             {
                 "title": "💪",
                 "start": date
+            }
+        )
+
+    return events
+
+    for _, row in sessions.iterrows():
+        events.append(
+            {
+                "id": str(int(row["Session_ID"])),
+                "title": "💪",
+                "start": row["Date"]
             }
         )
 
