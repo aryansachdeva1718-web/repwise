@@ -117,8 +117,12 @@ def interpret_score(score):
 
 #Recovery Score
 def recovery_score(date):
+
     workout_df = get_workout_history()
     daily_df = get_daily_metrics_history()
+
+    daily_df["Date"] = pd.to_datetime(daily_df["Date"]).dt.strftime("%Y-%m-%d")
+    date = pd.to_datetime(date).strftime("%Y-%m-%d")
     today_data = daily_df[daily_df["Date"] == date]
 
     if today_data.empty:
@@ -132,33 +136,43 @@ def recovery_score(date):
     calorie_points = calorie_score(calories, bodyweight)
 
     today_volume = get_today_volume(date)
-    avg_volume = get_avg_volume(workout_df ,date)
-    
+    avg_volume = get_avg_volume(workout_df, date)
+
     if avg_volume is not None:
 
-        fatigue_points = fatigue_score(today_volume, avg_volume)
-        total_score = ( sleep_points + calorie_points + fatigue_points)
+        fatigue_points = fatigue_score(
+            today_volume,
+            avg_volume
+        )
+
+        total_score = (
+            sleep_points
+            + calorie_points
+            + fatigue_points
+        )
+
         history_available = True
-    
+
     else:
+
         fatigue_points = None
 
         total_score = sleep_points + calorie_points
         total_score = (total_score / 80) * 100
+
         history_available = False
 
     interpretation = interpret_score(total_score)
 
     return {
-    "score": round(total_score),
-    "sleep": sleep_points,
-    "calories": calorie_points,
-    "fatigue": fatigue_points,
-    "history_available": history_available,
-    "status": interpretation["status"],
-    "message": interpretation["message"]
-}
-
+        "score": round(total_score),
+        "sleep": sleep_points,
+        "calories": calorie_points,
+        "fatigue": fatigue_points,
+        "history_available": history_available,
+        "status": interpretation["status"],
+        "message": interpretation["message"]
+    }
     
     
 

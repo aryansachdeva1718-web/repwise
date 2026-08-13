@@ -810,3 +810,189 @@ The application has now been tested through the actual Streamlit interface, incl
 - Workout detail display
 
 The core v0.7 workout workflow has reached the integration-testing stage.
+
+# August 13
+
+## Focus: v0.7 Final Integration Testing & Completion
+
+**Goal:** Complete the final integration testing for v0.7 after the SQLite backend migration, verifying that the migrated database works correctly with the major RepWise features through the actual Streamlit application.
+
+*(This session's testing is what closed out the v0.7 milestone — see `RepWise_v0.7_Completion_Summary.md` for the full milestone overview.)*
+
+---
+
+## 1. Updated Hevy Dataset
+
+The previous Hevy export only contained data through August 3. A new Hevy CSV export was generated through August 12 and used to test incremental importing into the existing SQLite database.
+
+The important part of this test was that existing workouts should not be duplicated. The importer uses the workout `start_time` as the `hevy_session_key`:
+
+```python
+SELECT session_id
+FROM workout_sessions
+WHERE hevy_session_key = ?
+```
+
+If the session already exists, it is skipped:
+
+```python
+if not is_new:
+    conn.rollback()
+    print(f"Skipping already imported workout: {start_time}")
+    continue
+```
+
+This allows a complete new Hevy export to be imported without duplicating previously migrated workouts.
+
+**Result:** Existing workouts were skipped and the newer workouts were imported successfully. This confirmed that the importer supports incremental migration from updated Hevy exports.
+
+---
+
+## 2. Recovery Score Debugging
+
+Recovery initially displayed:
+
+> Daily metrics not found for this workout.
+> Please log Sleep, Calories and Bodyweight first.
+
+The daily metrics were present in SQLite, so the issue was not missing data. The problem was a **date-format mismatch**.
+
+The recovery system compared the workout date against the daily metrics date:
+
+```python
+today_data = daily_df[daily_df["Date"] == date]
+```
+
+The two values could have different formats, such as `2026-08-11` versus `2026-08-11 00:00:00`.
+
+Both dates were normalized to the same format:
+
+```python
+daily_df["Date"] = pd.to_datetime(
+    daily_df["Date"]
+).dt.strftime("%Y-%m-%d")
+
+date = pd.to_datetime(date).strftime("%Y-%m-%d")
+```
+
+After this change, Recovery successfully found the daily metrics.
+
+**Key Learning:** Database migrations often expose hidden assumptions about data types and formatting. The database may contain the correct information while the application still fails because two representations of the same value are not normalized before comparison.
+
+---
+
+## 3. Recovery Score Successfully Tested
+
+After fixing date normalization, the Recovery Score successfully appeared in RepWise.
+
+The recovery system combines: **Sleep + Calories + Fatigue**
+
+The fatigue component uses recent workout volume when sufficient workout history is available. The final score is interpreted into statuses such as: `Excellent`, `Good`, `Moderate`, `Poor`, `Very Poor`.
+
+This confirmed that Recovery is successfully reading data from the migrated SQLite backend.
+
+---
+
+## 4. Workout Recommendations
+
+Workout recommendations were also visible and functioning after the migration. This confirmed that the recommendation system can operate using the migrated workout and recovery data.
+
+The broader pipeline is now:
+
+```
+SQLite Workout Data
+        ↓
+Recovery / Training Analysis
+        ↓
+Workout Recommendations
+```
+
+---
+
+## 5. Analytics
+
+Analytics were successfully displayed after importing the newer Hevy dataset. This confirmed that the analytics system can read the migrated workout history from SQLite and operate on the expanded dataset.
+
+The end-to-end flow is now:
+
+```
+Hevy CSV
+   ↓
+Importer
+   ↓
+SQLite
+   ↓
+Workout History
+   ↓
+Analytics
+```
+
+---
+
+## 6. Full v0.7 Workflow Verified
+
+The major RepWise workflow is now functioning end-to-end:
+
+```
+Hevy Export
+     ↓
+CSV Import
+     ↓
+SQLite
+     ↓
+Workout Sessions
+     ↓
+Workout Sets
+     ↓
+Dashboard
+     ↓
+Recovery
+     ↓
+Recommendations
+     ↓
+Analytics
+```
+
+Manual workout logging also works:
+
+```
+Streamlit Workout Logger
+        ↓
+Workout Session
+        ↓
+session_id
+        ↓
+Exercise Name
+        ↓
+exercise_id
+        ↓
+Workout Sets
+        ↓
+SQLite
+```
+
+---
+
+## Final Result
+
+v0.7 is considered complete. The application has moved beyond simply having the SQLite migration implemented and has now been validated through the actual Streamlit workflow.
+
+The most important lesson from this testing phase was that successful migration requires testing the entire data flow:
+
+```
+UI
+↓
+Application Logic
+↓
+Database Queries
+↓
+SQLite
+↓
+Application Logic
+↓
+UI
+```
+
+A feature can work correctly in isolation but still fail when connected to the migrated database. The Recovery date-format bug was a good example of this: the data existed correctly in SQLite, but the application could not find it until both date representations were normalized.
+
+v0.7 is therefore a completed SQLite-backed integration milestone.

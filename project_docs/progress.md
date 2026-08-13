@@ -375,4 +375,120 @@ Chronological sorting
 Session grouping
    ↓
 SQLite insertion
+```
 
+# Database Integration - v0.7 Completion
+**Milestone:** SQLite Backend Migration
+**Status:** ✅ Complete
+**Completion Date:** August 13, 2026
+
+---
+
+## Overview
+
+v0.7 marks the completion of RepWise's migration from CSV-based storage to a SQLite backend. The migration is not just implemented — it has been fully validated end-to-end through the live Streamlit application, across every major feature: import, manual logging, dashboard, recovery, recommendations, and analytics.
+
+---
+
+## What v0.7 Delivers
+
+### Core Architecture
+- **SQLite backend** replacing the previous CSV-based storage
+- **Removal of obsolete CSV dependencies** from the application logic
+- **Workout session architecture** — a `session_id` represents a full workout, containing one or more exercises
+- **Workout sets architecture** — sets belong to exercises, exercises belong to sessions
+- **Exercise database** — a verified 50-exercise catalog, with exercise names resolving directly to SQLite `exercise_id` records
+
+### Data Import
+- **Updated Hevy CSV importing** — supports re-exported/updated Hevy data
+- **Incremental Hevy imports** — re-importing an updated export does not duplicate previously migrated workouts, via a dedup check on `hevy_session_key` (the workout `start_time`)
+
+### Logging & Tracking
+- **Manual workout logging** through Streamlit, fully SQLite-backed
+- **Multiple exercises per workout session**, correctly grouped under a single `session_id`
+- **Daily metrics stored in SQLite** (Sleep, Calories, Bodyweight, etc.)
+
+### Dashboard & Insights
+- **Session-based dashboard retrieval** (replacing the earlier date-based approach)
+- **Recovery Score**, combining Sleep + Calories + Fatigue (fatigue driven by recent workout volume), mapped to status levels: `Excellent / Good / Moderate / Poor / Very Poor`
+- **Recovery date normalization**, ensuring date comparisons between workouts and daily metrics are consistent
+- **Workout recommendations**, generated from migrated workout and recovery data
+- **Analytics**, reading and operating on the full migrated workout history
+
+---
+
+## End-to-End Data Flows (Verified)
+
+**Import → Analytics pipeline:**
+```
+Hevy Export
+   ↓
+CSV Import
+   ↓
+SQLite
+   ↓
+Workout Sessions
+   ↓
+Workout Sets
+   ↓
+Dashboard
+   ↓
+Recovery
+   ↓
+Recommendations
+   ↓
+Analytics
+```
+
+**Manual logging pipeline:**
+```
+Streamlit Workout Logger
+        ↓
+Workout Session
+        ↓
+session_id
+        ↓
+Exercise Name
+        ↓
+exercise_id
+        ↓
+Workout Sets
+        ↓
+SQLite
+```
+
+---
+
+## Completed Checklist
+
+- [x] SQLite backend migration
+- [x] Removal of obsolete CSV dependencies
+- [x] Workout session architecture
+- [x] Workout sets architecture
+- [x] Exercise database
+- [x] 50-exercise workout catalog
+- [x] Manual workout logging
+- [x] Multiple exercises per workout
+- [x] Session-based dashboard retrieval
+- [x] Updated Hevy CSV importing
+- [x] Incremental Hevy imports
+- [x] Daily metrics stored in SQLite
+- [x] Recovery Score
+- [x] Recovery date normalization
+- [x] Workout recommendations
+- [x] Analytics
+- [x] End-to-end Streamlit testing
+
+---
+
+## Key Takeaway
+
+Database migrations often expose hidden assumptions about data types and formatting — data can be correctly stored while the application still fails to find it, if two representations of the same value (e.g. `2026-08-11` vs `2026-08-11 00:00:00`) aren't normalized before comparison. The only reliable way to catch this class of bug is to test the **entire** data flow — UI → Application Logic → Database Queries → SQLite → Application Logic → UI — rather than validating each layer in isolation.
+
+---
+
+## Final Result
+
+**v0.7 is complete.** RepWise now runs entirely on a validated SQLite backend, with every core feature — import, logging, dashboard, recovery, recommendations, and analytics — confirmed working end-to-end through the real application.
+
+*For a detailed log of the final integration testing session that closed out this milestone, see `RepWise_Aug13_Work_Log.md`.*
