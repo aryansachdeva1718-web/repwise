@@ -1,67 +1,227 @@
 # RepWise
 
-A modular Python fitness tracking application for workout logging, training analytics, recovery analysis, and workout recommendations.
+RepWise is a modular Python fitness analytics application that combines workout logging, recovery analysis, rule-based recommendations, and a first machine-learning performance prediction pipeline.
 
-RepWise combines a **SQLite-backed data layer**, reusable Python backend logic, and a **Streamlit dashboard** to turn raw workout history into useful training insights.
+The project uses **SQLite** for persistent storage, **Pandas** for analytics and feature engineering, **scikit-learn** for ML, and **Streamlit** for the user interface.
 
-## Features
+---
+
+## Why I Built This
+
+I built RepWise to combine my interest in fitness with software engineering, data analysis, and machine learning.
+
+The project started as a workout logger and gradually evolved into a complete data pipeline:
+
+```text
+Workout Logging
+      ↓
+SQLite Database
+      ↓
+Analytics & Recovery
+      ↓
+Recommendation Engine
+      ↓
+ML Feature Engineering
+      ↓
+Next-Session e1RM Prediction
+      ↓
+Streamlit Inference
+```
+
+The goal is not only to build a fitness tracker, but to understand how a real ML-enabled application is designed, evaluated, and integrated end-to-end.
+
+---
+
+## Current Features
 
 ### 🏋️ Workout Logging
 
-* Log workouts with exercises, sets, reps, and weight
-* Log daily metrics including sleep, calories, and bodyweight
-* Automatic Personal Record (PR) detection
-* Multiple PRs supported within a single workout session
-* Workout sessions grouped and stored chronologically
+- Log workouts with exercises, sets, reps, and weight
+- Log daily metrics including sleep, calories, and bodyweight
+- Automatic personal-record detection
+- Multiple PRs supported within one workout
+- Chronological workout-session storage
+- Manual logging backed by SQLite
 
 ### 📊 Dashboard
 
-* Workout overview and key statistics
-* Interactive workout calendar
-* Clickable workout history
-* Detailed session breakdowns
-* Recent workout summaries
-* Latest recovery and recommendation previews
+- Workout overview and key statistics
+- Interactive workout calendar
+- Clickable workout history
+- Detailed session breakdowns
+- Recent workout summaries
+- Recovery and recommendation previews
 
 ### 📈 Analytics
 
-* Total workout volume
-* Average session volume
-* Exercise progression graphs
-* Workout volume trends
-* Bodyweight trends
-* Historical workout analysis
+- Total workout sessions
+- Total exercises logged
+- Total workout volume
+- Average session volume
+- Exercise progress graphs
+- Workout-volume trend
+- Bodyweight trend
+- ML-based next-performance prediction
 
 ### 🧠 Recovery System
 
 RepWise calculates a **0–100 recovery score** using:
 
-* Sleep
-* Calorie intake
-* Relative workout fatigue
-* Historical workout volume
+- Sleep
+- Calorie intake
+- Bodyweight
+- Relative workout fatigue
+- Historical workout volume
 
-The fatigue component compares recent workout volume against the user's historical training volume rather than relying on fixed volume thresholds.
+The fatigue component compares the current session against the previous training history rather than relying on fixed workout-volume thresholds.
 
-The system also:
+The recovery system also:
 
-* Handles insufficient workout history
-* Automatically scales the score when fatigue data is unavailable
-* Provides recovery status and training recommendations
-* Supports recovery analysis for historical workout dates
+- handles insufficient workout history
+- scales the remaining score when fatigue history is unavailable
+- supports rest days
+- provides recovery status and training recommendations
+- can analyze historical workout dates
 
-### 🤖 Workout Recommendations
+### 🤖 Rule-Based Workout Recommendations
 
-RepWise currently uses a **rule-based recommendation engine** that:
+The recommendation engine:
 
-* Detects neglected muscles
-* Tracks how recently muscles were trained
-* Considers primary and secondary muscle involvement
-* Accounts for secondary muscle fatigue
-* Ranks muscles by training priority
-* Provides reasoning behind recommendations
+- detects neglected muscles
+- tracks how recently muscles were trained
+- considers primary and secondary muscle involvement
+- accounts for secondary-muscle fatigue
+- ranks muscles by training priority
+- provides reasoning behind recommendations
 
-The rule-based system provides the foundation for future ML-based recommendations.
+This rule-based system remains separate from the ML performance model.
+
+---
+
+# Machine Learning v0.1
+
+RepWise now includes its first end-to-end ML pipeline.
+
+## Problem
+
+The current model predicts:
+
+> **How much an exercise's estimated 1RM (e1RM) is expected to change in the next session.**
+
+The predicted change is then converted back into a predicted next-session e1RM.
+
+```text
+Current + Historical Exercise Data
+              ↓
+        Feature Engineering
+              ↓
+      Linear Regression Model
+              ↓
+      Predicted e1RM Change
+              ↓
+Current e1RM + Predicted Change
+              ↓
+     Predicted Next e1RM
+```
+
+## ML Dataset
+
+One ML row represents:
+
+> **one exercise performed during one workout session**
+
+Raw workout sets are aggregated into exercise-session observations before feature engineering.
+
+Current usable ML dataset:
+
+- **1,545 exercise-session samples**
+- **1,236 training samples**
+- **309 testing samples**
+- chronological **80/20 train-test split**
+- no random shuffling of future workout data into training
+
+## Features
+
+The current v0.1 model uses:
+
+- `last_e1rm`
+- `last_volume`
+- `recent_avg_e1rm`
+- `recent_avg_volume`
+- `historical_best_e1rm`
+- `days_since_last`
+- `exercise_session_count`
+
+## Target
+
+```text
+target_change = next_session_e1rm - current_e1rm
+```
+
+The final prediction is reconstructed as:
+
+```text
+predicted_next_e1rm = current_e1rm + predicted_change
+```
+
+## Model
+
+**Linear Regression** is used as the first interpretable baseline model.
+
+Current test-set results:
+
+| Metric | Result |
+|---|---:|
+| Next-e1RM MAE | **7.54** |
+| Next-e1RM RMSE | **12.00** |
+| Delta R² | **0.363** |
+| Naive Baseline MAE | **8.57** |
+
+The naive baseline assumes:
+
+```text
+next-session e1RM = current e1RM
+```
+
+The ML model currently performs better than this baseline on the held-out chronological test set.
+
+### Why Delta R²?
+
+An earlier absolute-e1RM model produced a high R² because much of the variance came from different exercises operating on very different strength scales.
+
+The delta target focuses evaluation on the harder problem:
+
+> **Can the model explain session-to-session performance change?**
+
+The model is experimental and still affected by noisy variables such as fatigue, exercise setup, rep range, technique, sleep, nutrition, and equipment differences.
+
+---
+
+## ML Inference in Streamlit
+
+The trained model is saved as a model artifact and loaded by `ml/predict.py`.
+
+The Analytics page displays:
+
+- **Current e1RM**
+- **Predicted Next e1RM**
+- **Expected Change**
+
+This creates the first complete RepWise ML workflow:
+
+```text
+Historical Workouts
+      ↓
+Train Model
+      ↓
+Save Model
+      ↓
+Load Model
+      ↓
+Select Exercise in Streamlit
+      ↓
+Generate Live Prediction
+```
 
 ---
 
@@ -69,89 +229,90 @@ The rule-based system provides the foundation for future ML-based recommendation
 
 RepWise uses **SQLite** as its persistent relational database.
 
-### Schema
+### Core Tables
 
-Core tables include:
-
-* `workout_sessions`
-* `exercises`
-* `workout_sets`
-* Exercise category mappings
-* Primary muscle mappings
-* Secondary muscle mappings
+- `workout_sessions`
+- `exercises`
+- `workout_sets`
+- daily metrics
+- exercise category mappings
+- primary muscle mappings
+- secondary muscle mappings
 
 The database uses:
 
-* Primary and foreign keys
-* Referential integrity
-* `ON DELETE RESTRICT`
-* Indexes
-* Transactions
-* Duplicate-session protection
+- primary and foreign keys
+- referential integrity
+- indexes
+- transactions
+- duplicate-session protection
+- chronological session storage
 
-### Hevy Migration Pipeline
+### Hevy Import Pipeline
 
-Historical Hevy workout data is migrated through:
+Historical workout data can be imported from a Hevy CSV export:
 
 ```text
 Hevy CSV
    ↓
 Pandas
    ↓
-Validation & Cleaning
+Validation
    ↓
-Normalization
+Cleaning
    ↓
 Chronological Sorting
    ↓
-SQLite Insertion
+Duplicate Check
+   ↓
+SQLite Transaction
 ```
 
-The migration process is transactional and protects against duplicate session imports.
-
-### Current Dataset
-
-The current database contains:
-
-* **224 workout sessions**
-* **147 exercises**
-* **5,426 workout sets**
-
-Raw workout data is stored in the database. Metrics such as workout volume, recovery, and recommendations are calculated from the stored data when requested rather than being precomputed and stored separately.
+Existing workout sessions are skipped using the session key, allowing newer Hevy exports to be imported incrementally.
 
 ---
 
 ## Architecture
 
-RepWise follows a modular architecture with a separation between the **presentation layer**, **business logic**, and **database layer**.
-
 ```text
-Streamlit / CLI
-       ↓
-Application Logic
-       ↓
-Backend Modules
-       ↓
-Database Queries
-       ↓
-SQLite
+                     ┌──────────────────┐
+                     │    Streamlit     │
+                     └────────┬─────────┘
+                              │
+                     ┌────────▼─────────┐
+                     │ Application Logic│
+                     └────────┬─────────┘
+                              │
+            ┌─────────────────┼──────────────────┐
+            │                 │                  │
+     ┌──────▼──────┐   ┌──────▼──────┐   ┌─────▼─────┐
+     │  Analytics  │   │  Recovery   │   │    ML     │
+     │  & Tracker  │   │ Recommendations│ │ Pipeline  │
+     └──────┬──────┘   └──────┬──────┘   └─────┬─────┘
+            │                 │                  │
+            └─────────────────┼──────────────────┘
+                              │
+                     ┌────────▼─────────┐
+                     │      SQLite      │
+                     └──────────────────┘
 ```
 
-The same backend logic can be reused by both the CLI and Streamlit interfaces.
-
-This keeps UI code responsible for presentation while workout processing, analytics, recovery calculations, recommendations, and database operations remain separated.
+UI code is kept separate from analytics, recovery, recommendation, database, and ML logic.
 
 ---
 
 ## Tech Stack
 
-* **Python**
-* **Pandas**
-* **SQLite**
-* **SQL**
-* **Streamlit**
-* **Matplotlib**
-* **Git / GitHub**
+- **Python**
+- **Pandas**
+- **NumPy**
+- **scikit-learn**
+- **SQLite**
+- **SQL**
+- **Streamlit**
+- **Matplotlib**
+- **Joblib**
+- **Git / GitHub**
 
 ---
 
@@ -160,22 +321,32 @@ This keeps UI code responsible for presentation while workout processing, analyt
 ```text
 repwise/
 ├── data/
-│   └── # CSV exports / input data
+│   ├── repwise.db              # Active SQLite database
+│   └── workouts.csv            # Latest Hevy export / import source
 │
 ├── database/
-│   ├── connection.py       # SQLite connection management
-│   ├── schema.py           # Database schema
-│   └── queries.py          # Database queries
+│   ├── connection.py           # SQLite connection management
+│   ├── schema.py               # Database schema
+│   └── queries.py              # Database queries
 │
 ├── importers/
-│   └── migrate.py          # Hevy → SQLite migration pipeline
+│   └── migrate.py              # Hevy → SQLite migration pipeline
+│
+├── ml/
+│   ├── __init__.py
+│   ├── dataset.py              # Exercise-session ML dataset
+│   ├── features.py             # Historical feature engineering
+│   ├── train.py                # Training + evaluation
+│   ├── predict.py              # Live inference
+│   └── models/
+│       └── e1rm_delta_model.joblib
 │
 ├── src/
-│   ├── app.py              # Streamlit entry point
-│   ├── main.py             # CLI entry point
-│   ├── tracker.py          # Workout tracking and analytics
-│   ├── recovery.py         # Recovery scoring
-│   ├── helpers.py          # Shared helper functions
+│   ├── app.py                  # Streamlit entry point
+│   ├── main.py                 # CLI entry point
+│   ├── tracker.py              # Logging + analytics helpers
+│   ├── recovery.py             # Recovery scoring
+│   ├── helpers.py              # Shared utilities
 │   ├── recommendation_engine.py
 │   ├── exercise_database.py
 │   └── pages/
@@ -187,15 +358,52 @@ repwise/
 │       └── 05_Workout_Recommendation.py
 │
 ├── tools/
-│   └── # Database testing and inspection scripts
+│   ├── test_import.py
+│   └── # database inspection / testing utilities
 │
 ├── project_docs/
 │   ├── progress.md
 │   └── learning.md
 │
+├── screenshots/
+│   ├── dashboard.png
+│   ├── analytics_ml.png
+│   ├── workout_history.png
+│   ├── recovery.png
+│   └── recommendations.png
+│
+├── .gitignore
 ├── requirements.txt
-└── repwise.db
+└── README.md
 ```
+
+---
+
+## Screenshots
+
+### Analytics
+
+![RepWise Analytics ](screenshots/analytics_1.png)
+
+### ML Prediction
+
+![RepWise ML Prediction](screenshots/analytics_2.png)
+
+### Dashboard
+
+![RepWise Dashboard](screenshots/dashboard.png)
+
+### Workout Logging
+
+![RepWise Workout History](screenshots/log_workout.png)
+
+### Recovery Analysis
+
+![RepWise Recovery](screenshots/recovery.png)
+
+### Workout Recommendations
+
+![RepWise Recommendations](screenshots/recommendation.png)
 
 ---
 
@@ -220,100 +428,101 @@ Run the Streamlit application:
 py -m streamlit run src/app.py
 ```
 
+### Re-import a newer Hevy export
+
+Place the latest export at:
+
+```text
+data/workouts.csv
+```
+
+Then run:
+
+```bash
+py -m tools.test_import
+```
+
+### Retrain the ML model
+
+```bash
+python -m ml.train
+```
+
 ---
 
 ## Development Roadmap
 
 ### v0.1 — Workout Logging
-
-* Workout logging
-* Set and exercise tracking
+- workout logging
+- set and exercise tracking
 
 ### v0.2 — Recovery System
-
-* Recovery scoring
-* Sleep and calorie analysis
-* Fatigue scoring
+- sleep and calorie analysis
+- relative fatigue scoring
+- recovery score
 
 ### v0.3 — Recommendation Engine
-
-* Muscle priority system
-* Neglected muscle detection
+- neglected-muscle detection
+- muscle priority scoring
 
 ### v0.4 — Advanced Muscle Tracking
-
-* Secondary muscle involvement
-* Secondary muscle fatigue
+- secondary-muscle involvement
+- secondary-muscle fatigue
 
 ### v0.5 — Streamlit UI
-
-* Dashboard
-* Workout logging interface
-* Analytics
-* Recovery and recommendation pages
+- dashboard
+- logging pages
+- analytics
+- recovery and recommendations
 
 ### v0.6 — SQLite Migration
+- relational database architecture
+- Hevy migration
+- constraints, indexes, and transactions
 
-* Relational database architecture
-* Hevy workout history migration
-* Database constraints and indexes
-* Transactional migration pipeline
-
-### v0.7 — Database Integration
-
-* Converted application logic from CSV-based storage to SQLite
-* Database-backed workout tracking
-* Database-backed analytics
-* Database-backed recovery analysis
-* Database-backed recommendations
-* Completed end-to-end database workflow
+### v0.7 — Full Database Integration
+- SQLite-backed workout logging
+- daily metrics in SQLite
+- analytics and recovery backed by database queries
+- incremental Hevy imports
 
 ### v0.8 — UI & Portfolio Polish
+- improved layouts
+- dashboard cleanup
+- screenshots
+- documentation improvements
 
-**Current phase**
+### ML v0.1 — Performance Prediction ✅
+- ML-ready exercise-session dataset
+- leakage-aware historical features
+- chronological train/test split
+- naive baseline comparison
+- Linear Regression baseline
+- per-exercise diagnostics
+- delta-target evaluation
+- saved model artifact
+- live Streamlit inference
 
-* UI refinement
-* Visual consistency
-* Chart and layout improvements
-* Final screenshots
-* README and documentation updates
-
-### Future — ML Integration
-
-The next major development phase will focus on turning RepWise's existing analytics and rule-based systems into an ML-driven fitness application.
-
+### Next — ML v0.2
 Planned work:
 
-* Build an ML-ready dataset from historical workout data
-* Feature engineering
-* Recovery prediction
-* Compare ML predictions against the existing rule-based recovery system
-* ML-based workout recommendations
-* Personalized training insights
+- research factors affecting e1RM variability
+- add higher-value features
+- improve data-quality checks
+- investigate noisy/outlier exercises
+- compare regularized linear models
+- improve per-exercise evaluation
+- add e1RM progression visualization
+- track prediction vs actual performance over time
 
 ---
 
-## Future Improvements
+## Current Status
 
-Longer-term possibilities include:
+**Current milestone: ML v0.1 integrated**
 
-* Muscle recovery visualization
-* Long-term performance forecasting
-* User authentication
-* Cloud database integration
-* Workout history export
-* Mobile-friendly interface
-* Docker deployment
+RepWise now supports the complete workflow:
 
----
+**Workout Logging → SQLite → Analytics → Recovery → Recommendations → ML Training → Model Evaluation → Live Streamlit Prediction**
 
-## Project Status
-
-**Current version: v0.8 — UI & Portfolio Polish**
-
-RepWise currently has a complete end-to-end workflow covering:
-
-**Workout Logging → SQLite Database → Analytics → Recovery Analysis → Workout Recommendations → Streamlit Dashboard**
-
-The next major milestone is **ML integration**, beginning with ML theory, dataset preparation, feature engineering, and recovery prediction.
-
+The next phase focuses on improving the quality of the prediction problem and feature set rather than simply adding more complex algorithms.

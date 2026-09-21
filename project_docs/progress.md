@@ -379,7 +379,9 @@ SQLite insertion
 
 # Database Integration - v0.7 Completion
 **Milestone:** SQLite Backend Migration
+
 **Status:** ✅ Complete
+
 **Completion Date:** August 13, 2026
 
 ---
@@ -441,7 +443,7 @@ Analytics
 ```
 
 **Manual logging pipeline:**
-```
+```text
 Streamlit Workout Logger
         ↓
 Workout Session
@@ -492,3 +494,263 @@ Database migrations often expose hidden assumptions about data types and formatt
 **v0.7 is complete.** RepWise now runs entirely on a validated SQLite backend, with every core feature — import, logging, dashboard, recovery, recommendations, and analytics — confirmed working end-to-end through the real application.
 
 *For a detailed log of the final integration testing session that closed out this milestone, see `RepWise_Aug13_Work_Log.md`.*
+
+# ML Integration - v0.8 Completion
+
+**Milestone:** e_1rm Prediction
+
+**Status:** ✅ v0.1 Complete
+
+**Completion Date:** September 21, 2026
+
+RepWise has progressed from a CSV-based workout logger into a SQLite-backed fitness analytics application with recovery analysis, workout recommendations, and a first end-to-end machine-learning prediction pipeline.
+
+Current workflow:
+
+```
+Workout Logging
+      ↓
+SQLite Database
+      ↓
+Analytics
+      ↓
+Recovery Analysis
+      ↓
+Workout Recommendations
+      ↓
+ML Dataset
+      ↓
+Feature Engineering
+      ↓
+Training & Evaluation
+      ↓
+Saved Model
+      ↓
+Streamlit Prediction
+```
+
+## ***ML v0.1 — Performance Prediction***
+
+## Phase 1 — Problem Definition
+
+Selected the first ML problem:
+
+Predict next-session exercise performance using historical exercise data.
+
+The model operates at the exercise-session level, not whole-workout level.
+
+One row represents:
+
+one exercise × one workout session
+
+---
+## Phase 2 — ML Dataset
+
+Created:
+
+ml/dataset.py
+
+Pipeline:
+
+```
+SQLite workout sets
+      ↓
+SQL joins
+      ↓
+Set-level calculations
+      ↓
+Exercise-session aggregation
+```
+Exercise-session fields include:
+
+- session date
+- exercise ID
+- exercise name
+- sets
+- total reps
+- total volume
+- best weight
+- best e1RM
+- average RPE
+
+e1RM currently uses:
+
+```text
+e1RM = weight × (1 + reps / 30)
+```
+
+---
+
+## Phase 3 — Feature Engineering
+
+Created:
+
+```text
+ml/features.py
+```
+
+Current features:
+
+- `last_e1rm`
+- `last_volume`
+- `recent_avg_e1rm`
+- `recent_avg_volume`
+- `historical_best_e1rm`
+- `days_since_last`
+- `exercise_session_count`
+
+Feature engineering is performed independently for each exercise and in chronological order.
+
+---
+
+## Phase 4 — First ML Model
+
+Created:
+
+```text
+ml/train.py
+```
+
+Model:
+
+```text
+Linear Regression
+```
+
+Evaluation design:
+
+- chronological 80/20 split
+- no random shuffling
+- naive baseline comparison
+- MAE
+- RMSE
+- R²
+- per-exercise diagnostics
+- worst-prediction inspection
+- coefficient inspection
+
+### Current Dataset
+
+```text
+Total usable rows: 1545
+Training rows:     1236
+Testing rows:       309
+```
+
+### Absolute-Target Result
+
+Initial model predicted absolute next-session e1RM.
+
+```text
+MAE:          7.54
+RMSE:        12.00
+R²:           0.936
+Baseline MAE: 8.57
+```
+
+The high R² was partly caused by different exercises operating on very different absolute strength scales.
+
+---
+
+## Delta-Target Experiment
+
+Changed the target to:
+
+```text
+target_change = next_e1rm - current_e1rm
+```
+
+Final e1RM prediction:
+
+```text
+predicted_next_e1rm
+=
+current_e1rm + predicted_change
+```
+
+Current results:
+
+```text
+Next-e1RM MAE:  7.54
+Next-e1RM RMSE: 12.00
+Delta R²:       0.363
+Baseline MAE:   8.57
+```
+
+Important finding:
+
+The absolute prediction error remained unchanged because the delta formulation is a linear reparameterization of the same Linear Regression problem when `last_e1rm` remains a feature.
+
+However, **Delta R² = 0.363** provides a more useful view of how much session-to-session performance change the current feature set can explain.
+
+---
+
+## Model Diagnostics
+
+Implemented:
+
+- per-exercise MAE
+- baseline MAE by exercise
+- improvement over baseline
+- worst-prediction inspection
+- model coefficient output
+
+Large errors were concentrated in more volatile exercises such as:
+
+- machine leg press
+- some machine/cable movements
+- chest-supported rows
+- exercises with large session-to-session e1RM changes
+
+This suggests future gains are likely to come from:
+
+- better feature engineering
+- better treatment of exercise/equipment variability
+- additional recovery/readiness variables
+- improved e1RM quality controls
+
+rather than immediately switching to a more complex model.
+
+---
+
+## Phase 5 — Model Persistence & Inference
+
+Added:
+
+```text
+ml/predict.py
+```
+
+The trained model is saved using Joblib:
+
+```text
+ml/models/e1rm_delta_model.joblib
+```
+
+Live inference flow:
+
+```text
+Select Exercise
+      ↓
+Load Latest Exercise History
+      ↓
+Build Current Features
+      ↓
+Load Saved ML Model
+      ↓
+Predict e1RM Change
+      ↓
+Generate Next e1RM Prediction
+```
+
+---
+
+## Streamlit ML Integration
+
+The Analytics page now displays:
+
+- Current e1RM
+- Predicted Next e1RM
+- Expected Change
+
+This is the first complete ML feature exposed directly to the user.

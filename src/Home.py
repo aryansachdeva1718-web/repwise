@@ -59,5 +59,5 @@ st.info(
 )
 
 st.caption(
-    "Built with Python • Pandas • Streamlit • Matplotlib • Scikit-learn (Planned)"
+    "Built with Python • Pandas • Streamlit • Matplotlib • Scikit-learn "
 )

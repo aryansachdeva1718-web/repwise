@@ -1,4 +1,18 @@
-venv/
-.venv/
+# Python
 __pycache__/
 *.pyc
+
+# Virtual environments
+.venv/
+venv/
+
+# Local databases / personal workout data
+*.db
+data/workouts.csv
+
+# Environment files
+.env
+
+# OS / editor
+.DS_Store
+.vscode/
