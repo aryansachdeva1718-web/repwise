@@ -1,9 +1,15 @@
 import streamlit as st
 from tracker import *
+from ml.predict import predict_next_e1rm
+
 
 st.title("📈 Analytics")
 
 st.divider()
+
+# ---------------------------------------------------------
+# OVERALL STATS
+# ---------------------------------------------------------
 
 col1, col2 = st.columns(2)
 
@@ -33,7 +39,13 @@ with col4:
         f"{get_average_session_volume():,.0f} kg"
     )
 
+
 st.divider()
+
+
+# ---------------------------------------------------------
+# EXERCISE PROGRESS
+# ---------------------------------------------------------
 
 st.subheader("🏋 Exercise Progress")
 
@@ -50,13 +62,72 @@ else:
         exercise_list
     )
 
-    progress_df = get_exercise_progress(selected_exercise)
-
-    st.line_chart(
-        progress_df.set_index("Date")["Weight"]
+    progress_df = get_exercise_progress(
+        selected_exercise
     )
 
+    if not progress_df.empty:
+
+        st.line_chart(
+            progress_df.set_index("Date")["Weight"]
+        )
+
+    else:
+
+        st.info(
+            "No progress history available "
+            "for this exercise."
+        )
+
+    # -----------------------------------------------------
+    # ML PERFORMANCE PREDICTION
+    # -----------------------------------------------------
+
+    st.subheader("🤖 Predicted Next Performance")
+
+    prediction = predict_next_e1rm(
+        selected_exercise
+    )
+
+    if prediction is None:
+
+        st.info(
+            "Not enough workout history to generate "
+            "a prediction for this exercise yet."
+        )
+
+    else:
+
+        col1, col2, col3 = st.columns(3)
+
+        col1.metric(
+            "Current e1RM",
+            f"{prediction['current_e1rm']:.1f} kg"
+        )
+
+        col2.metric(
+            "Predicted Next e1RM",
+            f"{prediction['predicted_e1rm']:.1f} kg"
+        )
+
+        col3.metric(
+            "Expected Change",
+            f"{prediction['predicted_change']:+.1f} kg"
+        )
+
+        st.caption(
+            "Experimental ML prediction based on "
+            "recent performance, training volume "
+            "and exercise history."
+        )
+
+
 st.divider()
+
+
+# ---------------------------------------------------------
+# WORKOUT VOLUME TREND
+# ---------------------------------------------------------
 
 st.subheader("📊 Workout Volume Trend")
 
@@ -70,9 +141,17 @@ if not volume_df.empty:
 
 else:
 
-    st.info("No workout history available.")
+    st.info(
+        "No workout history available."
+    )
+
 
 st.divider()
+
+
+# ---------------------------------------------------------
+# BODYWEIGHT TREND
+# ---------------------------------------------------------
 
 st.subheader("⚖️ Bodyweight Trend")
 
@@ -86,4 +165,6 @@ if not bodyweight_df.empty:
 
 else:
 
-    st.info("No bodyweight history available.")
+    st.info(
+        "No bodyweight history available."
+    )
