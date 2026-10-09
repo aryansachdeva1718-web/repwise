@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from database.connection import get_connection
 from api.models.workout import WorkoutSummaryResponse, WorkoutDetailResponse
 
@@ -9,15 +9,31 @@ router = APIRouter(
 
 
 @router.get("/", response_model=list[WorkoutSummaryResponse])
-def get_workouts():
+def get_workouts(
+    limit: int = Query(default = 10, ge=1, le = 100),
+    offset: int = Query(default=0, ge=0),
+    title: str | None = Query(default=None)
+):
     conn = get_connection()
     cursor = conn.cursor()
+    if title is not None:
+        search_pattern = f"%{title}%"
 
-    cursor.execute("""
-        SELECT session_id, title, start_time, end_time, description
-        FROM workout_sessions
-        ORDER BY start_time DESC
-    """)
+        cursor.execute("""
+                SELECT session_id, title, start_time, end_time, description
+                FROM workout_sessions
+                WHERE title LIKE ?
+                ORDER BY start_time DESC, session_id DESC
+                LIMIT ? OFFSET ?
+            """,(search_pattern,limit,offset))
+
+    else:
+        cursor.execute("""
+                        SELECT session_id, title, start_time, end_time, description
+                        FROM workout_sessions
+                        ORDER BY start_time DESC, session_id DESC
+                        LIMIT ? OFFSET ?
+                    """,(limit,offset)) 
 
     rows = cursor.fetchall()
 
