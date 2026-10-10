@@ -5,4 +5,3 @@ class ExerciseSummaryResponse(BaseModel):
     name: str
     primary_muscle: str | None = None
     secondary_muscle: str | None = None
-

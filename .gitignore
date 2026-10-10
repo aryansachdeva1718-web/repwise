@@ -16,3 +16,8 @@ data/workouts.csv
 # OS / editor
 .DS_Store
 .vscode/
+
+# SQLite databases
+*.db
+*.db-wal
+*.db-shm

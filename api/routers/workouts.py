@@ -1,6 +1,9 @@
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, status
 from database.connection import get_connection
 from api.models.workout import WorkoutSummaryResponse, WorkoutDetailResponse
+from api.models.workout_create import WorkoutCreate
+from uuid import uuid4
+import os
 
 router = APIRouter(
     prefix="/workouts",
@@ -104,5 +107,54 @@ def get_workout(session_id: int):
 
     return workout
 
+@router.post("/", status_code= status.HTTP_201_CREATED)
+def create_workout(workout: WorkoutCreate):
+    if os.environ.get("REPWISE_DB_PATH") != "data/repwise_test.db":
+        raise HTTPException(
+            status_code=403,
+            detail="Workout creation is restricted to the test database."
+        )
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute("""
+        INSERT INTO workout_sessions(hevy_session_key, title, start_time, end_time, description)
+        VALUES(?,?,?,?,?)
+        """,( f"manual_{uuid4().hex}",workout.title,workout.start_time,workout.end_time,workout.description))
+
+        session_id = cursor.lastrowid
+
+        for exercise_index, exercise in enumerate(workout.exercises):
+            for set_index, workout_set in enumerate(exercise.sets):
+                cursor.execute("""
+                INSERT INTO workout_sets(
+                session_id, 
+                exercise_id,
+                order_in_session, 
+                set_number,
+                set_type, 
+                weight, 
+                reps)
+                VALUES(?,?,?,?,?,?,?)
+                """,(session_id,
+                     exercise.exercise_id,
+                     exercise_index,
+                     set_index,
+                     workout_set.set_type,
+                     workout_set.weight,
+                     workout_set.reps ))
+
+        conn.commit()
+        return {
+        "message": "Workout created successfully",
+        "session_id": session_id
+        }
     
+    except Exception:
+        conn.rollback()
+        raise
+
+    finally:
+        conn.close()
 
