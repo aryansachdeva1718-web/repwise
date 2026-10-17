@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, Query, status
 from database.connection import get_connection
 from api.models.workout import WorkoutSummaryResponse, WorkoutDetailResponse
 from api.models.workout_create import WorkoutCreate
+from api.models.workout_update import WorkoutUpdate
 from uuid import uuid4
 import os
 
@@ -158,3 +159,56 @@ def create_workout(workout: WorkoutCreate):
     finally:
         conn.close()
 
+@router.patch("/{session_id}")
+def update_workout(session_id: int, workout: WorkoutUpdate):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    try:
+        updates = workout.model_dump(exclude_unset=True)
+
+        if not updates:
+            raise HTTPException(
+                status_code= 400,
+                detail = "No fields provided for the update"
+            )
+
+        cursor.execute(
+            "SELECT 1 FROM workout_sessions WHERE session_id = ?",
+            (session_id,)
+        )
+
+        if cursor.fetchone() is None:
+            raise HTTPException(
+                status_code=404,
+                detail="Workout not found"
+            )
+        
+        allowed_fields = {"title", "start_time", "end_time", "description"}
+        if not set(updates).issubset(allowed_fields):
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid update fields"
+            )
+        
+        set_clause = ", ".join(f"{field} = ?" for field in updates)
+        
+        values = list(updates.values())
+        values.append(session_id)
+
+        cursor.execute(f"""
+            UPDATE workout_sessions
+            SET {set_clause}
+            WHERE session_id = ?
+        """,values)
+        
+        conn.commit()
+
+        return {"message": "Workout updated successfully"}
+
+    except Exception:
+        conn.rollback()
+        raise
+
+    finally:
+        conn.close()
