@@ -4,13 +4,12 @@ from api.models.workout import WorkoutSummaryResponse, WorkoutDetailResponse
 from api.models.workout_create import WorkoutCreate
 from api.models.workout_update import WorkoutUpdate
 from uuid import uuid4
-import os
+import sqlite3
 
 router = APIRouter(
     prefix="/workouts",
     tags=["Workouts"]
 )
-
 
 @router.get("/", response_model=list[WorkoutSummaryResponse])
 def get_workouts(
@@ -56,9 +55,9 @@ def get_workout(session_id: int):
         e.exercise_id, e.name, 
         wst.set_number, wst.set_type, wst.weight, wst.reps, wst.rpe
     FROM workout_sessions as ws
-    JOIN workout_sets as wst
+    LEFT JOIN workout_sets AS wst
         ON ws.session_id = wst.session_id
-    JOIN exercises as e
+    LEFT JOIN exercises AS e
         ON wst.exercise_id = e.exercise_id
     WHERE ws.session_id = ?
     ORDER BY wst.order_in_session,wst.set_number""", (session_id,))
@@ -84,6 +83,9 @@ def get_workout(session_id: int):
 
     exercises = {}
     for row in e_rows:
+        
+        if row["exercise_id"] is None:
+            continue
 
         exercise_id = row["exercise_id"]
 
@@ -110,11 +112,6 @@ def get_workout(session_id: int):
 
 @router.post("/", status_code= status.HTTP_201_CREATED)
 def create_workout(workout: WorkoutCreate):
-    if os.environ.get("REPWISE_DB_PATH") != "data/repwise_test.db":
-        raise HTTPException(
-            status_code=403,
-            detail="Workout creation is restricted to the test database."
-        )
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -151,6 +148,13 @@ def create_workout(workout: WorkoutCreate):
         "message": "Workout created successfully",
         "session_id": session_id
         }
+
+    except sqlite3.IntegrityError:
+        conn.rollback()
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid workout data or exercise ID"
+        )
     
     except Exception:
         conn.rollback()

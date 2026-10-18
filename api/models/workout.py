@@ -7,7 +7,7 @@ class WorkoutSummaryResponse(BaseModel):
     description: str | None = None
 class SetResponse(BaseModel):
     set_number: int
-    set_type: str
+    set_type: str | None = None 
     weight: float | None = None
     reps: int | None = None
     rpe: float | None = None
