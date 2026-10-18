@@ -212,3 +212,33 @@ def update_workout(session_id: int, workout: WorkoutUpdate):
 
     finally:
         conn.close()
+
+@router.delete("/{session_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_workout(session_id: int):
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            "SELECT 1 FROM workout_sessions WHERE session_id = ?",
+            (session_id,)
+            )
+        
+        if cursor.fetchone() is None:
+            raise HTTPException(
+                status_code=404,
+                detail="Workout not found"
+                )
+
+        cursor.execute("""
+            DELETE from workout_sessions
+            WHERE session_id = ?
+        """,(session_id,))
+
+        conn.commit()
+
+    except Exception:
+        conn.rollback()
+        raise
+
+    finally:
+        conn.close()
