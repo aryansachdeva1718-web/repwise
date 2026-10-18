@@ -754,3 +754,27 @@ The Analytics page now displays:
 - Expected Change
 
 This is the first complete ML feature exposed directly to the user.
+
+---
+
+# October 18, 2026 — FastAPI Backend Milestone
+
+**Status:** Core REST API CRUD complete; automated workout API tests passing.
+
+## Implemented
+
+- `GET /workouts/` — pagination and title filtering.
+- `GET /workouts/{session_id}` — workout details with exercises and sets.
+- `POST /workouts/` — transactional workout and set creation.
+- `PATCH /workouts/{session_id}` — partial metadata updates with Pydantic validation.
+- `DELETE /workouts/{session_id}` — workout deletion with cascading set deletion.
+- `GET /exercises/` and `GET /exercises/{exercise_id}` — exercise retrieval.
+- Environment-based SQLite database selection, with development defaulting to the test database.
+
+## Verification
+
+- Session 7: six manual DELETE/cascade/integrity checks passed.
+- Session 8: **4/4 pytest tests passed** (CRUD lifecycle, missing IDs, zero-set workout, invalid exercise rollback).
+- FastAPI documentation available through Swagger UI at `/docs`.
+
+**Scope note:** Streamlit and FastAPI currently provide separate interfaces; the Streamlit UI has not been migrated to call the API.

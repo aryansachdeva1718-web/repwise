@@ -996,3 +996,22 @@ UI
 A feature can work correctly in isolation but still fail when connected to the migrated database. The Recovery date-format bug was a good example of this: the data existed correctly in SQLite, but the application could not find it until both date representations were normalized.
 
 v0.7 is therefore a completed SQLite-backed integration milestone.
+
+
+---
+
+# October 2026 — FastAPI Backend (Sessions 1–8)
+
+## Concepts Learned
+
+- RESTful API design: resource-based routes, GET/POST/PATCH/DELETE, and HTTP status codes (200, 201, 204, 400, 404, 422).
+- FastAPI routing, Swagger UI, request and response models, and Pydantic field validation.
+- PATCH semantics: `model_dump(exclude_unset=True)` distinguishes omitted fields from explicitly supplied `null`.
+- Safe SQL updates with parameter placeholders and an allowlist for dynamic column names.
+- SQLite transactions (`commit`/`rollback`), foreign-key enforcement, and `ON DELETE CASCADE`.
+- Development/production database separation to protect workout history.
+- Automated API testing with pytest, FastAPI TestClient, and a temporary SQLite database.
+
+## Key Takeaway
+
+A backend is more than endpoints: reliable validation, database integrity, isolation, and repeatable tests are essential.
