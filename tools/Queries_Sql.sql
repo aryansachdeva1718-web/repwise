@@ -1,3 +1,1 @@
-SELECT *
-FROM workout_sessions
-WHERE session_id IN (225, 226, 227);
+PRAGMA foreign_keys ;

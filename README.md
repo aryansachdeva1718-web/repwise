@@ -133,7 +133,7 @@ python -m pip install -r requirements.txt
 **Run the Streamlit app:**
 
 ```powershell
-python -m streamlit run src/app.py
+python -m streamlit run src/Home.py
 ```
 
 **Run the FastAPI backend** (requires an existing `data/repwise_test.db`):
