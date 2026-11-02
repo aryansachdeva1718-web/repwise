@@ -1,23 +1,19 @@
+# Personal workout data and local databases
+data/
+
 # Python
 __pycache__/
-*.pyc
+*.py[cod]
+.pytest_cache/
 
 # Virtual environments
-.venv/
 venv/
+.venv/
 
-# Local databases / personal workout data
-*.db
-data/workouts.csv
-
-# Environment files
+# Environment variables
 .env
+.env.*
 
-# OS / editor
-.DS_Store
+# IDE
 .vscode/
-
-# SQLite databases
-*.db
-*.db-wal
-*.db-shm
+.idea/

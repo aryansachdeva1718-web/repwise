@@ -1,85 +1,105 @@
-from database.connection import get_connection
+import sqlite3
+from database.connection import get_database_path
+
 
 def create_tables():
-    conn = get_connection()
-    cursor = conn.cursor()
+    # Get the database path based on the current environment.
+    db_path = get_database_path()
 
-    # Exercises Table
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS exercises (
-        exercise_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL UNIQUE,
-        primary_muscle TEXT,
-        secondary_muscle TEXT
-    );
-    """)
+    # Create the data directory if it does not exist.
+    db_path.parent.mkdir(parents=True, exist_ok=True)
 
-    # Workout Sessions Table
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS workout_sessions (
-        session_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        hevy_session_key TEXT UNIQUE NOT NULL,
-        title TEXT,
-        start_time TEXT NOT NULL,
-        end_time TEXT,
-        description TEXT
-    );
-    """)
+    # Create the database file if it does not exist.
+    # This connection is only used for initialization.
+    conn = sqlite3.connect(db_path)
 
-    # Workout Sets Table
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS workout_sets (
-        set_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        session_id INTEGER NOT NULL,
-        exercise_id INTEGER NOT NULL,
-        order_in_session INTEGER NOT NULL,
-        set_number INTEGER NOT NULL,
-        set_type TEXT,
-        weight REAL,
-        reps INTEGER,
-        distance_km REAL,
-        duration_seconds INTEGER,
-        superset_id TEXT,
-        exercise_notes TEXT,
-        rpe REAL,
+    try:
+        conn.execute("PRAGMA foreign_keys = ON;")
+        cursor = conn.cursor()
 
-        FOREIGN KEY (session_id)
-            REFERENCES workout_sessions(session_id)
-            ON DELETE CASCADE,
+        # Exercises Table
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS exercises (
+            exercise_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL UNIQUE,
+            primary_muscle TEXT,
+            secondary_muscle TEXT
+        );
+        """)
 
-        FOREIGN KEY (exercise_id)
-            REFERENCES exercises(exercise_id)
-            ON DELETE RESTRICT
-    );
-    """)
+        # Workout Sessions Table
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS workout_sessions (
+            session_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            hevy_session_key TEXT UNIQUE NOT NULL,
+            title TEXT,
+            start_time TEXT NOT NULL,
+            end_time TEXT,
+            description TEXT
+        );
+        """)
 
-    # Daily Metrics Table
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS daily_metrics (
-        date TEXT PRIMARY KEY,
-        sleep REAL,
-        calories INTEGER,
-        bodyweight REAL
-    );
-    """)
+        # Workout Sets Table
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS workout_sets (
+            set_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            session_id INTEGER NOT NULL,
+            exercise_id INTEGER NOT NULL,
+            order_in_session INTEGER NOT NULL,
+            set_number INTEGER NOT NULL,
+            set_type TEXT,
+            weight REAL,
+            reps INTEGER,
+            distance_km REAL,
+            duration_seconds INTEGER,
+            superset_id TEXT,
+            exercise_notes TEXT,
+            rpe REAL,
 
-    cursor.execute("""
-    CREATE INDEX IF NOT EXISTS idx_workout_sets_exercise
-    ON workout_sets(exercise_id);
-    """)
+            FOREIGN KEY (session_id)
+                REFERENCES workout_sessions(session_id)
+                ON DELETE CASCADE,
 
-    cursor.execute("""
-    CREATE INDEX IF NOT EXISTS idx_workout_sets_session
-    ON workout_sets(session_id);
-    """)
+            FOREIGN KEY (exercise_id)
+                REFERENCES exercises(exercise_id)
+                ON DELETE RESTRICT
+        );
+        """)
 
-    cursor.execute("""
-    CREATE INDEX IF NOT EXISTS idx_sessions_start
-    ON workout_sessions(start_time);
-    """)
+        # Daily Metrics Table
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS daily_metrics (
+            date TEXT PRIMARY KEY,
+            sleep REAL,
+            calories INTEGER,
+            bodyweight REAL
+        );
+        """)
 
-    conn.commit()
-    conn.close()
+        # Indexes
+        cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_workout_sets_exercise
+        ON workout_sets(exercise_id);
+        """)
+
+        cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_workout_sets_session
+        ON workout_sets(session_id);
+        """)
+
+        cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_sessions_start
+        ON workout_sessions(start_time);
+        """)
+
+        conn.commit()
+
+    except Exception:
+        conn.rollback()
+        raise
+
+    finally:
+        conn.close()
 
 
 if __name__ == "__main__":
