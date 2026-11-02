@@ -45,6 +45,14 @@ Features include previous e1RM and volume, rolling averages, historical best e1R
 
 The naive baseline predicts that the next e1RM equals the current e1RM. This first model is experimental; session-to-session performance is influenced by fatigue, technique, exercise setup, and other noisy factors.
 
+## Importing workout data
+
+RepWise supports workout imports from a Hevy CSV export. The importer expects the 14 exact column names documented in [`docs/import-format.md`](docs/import-format.md). All headers must be present, although individual values can be blank where appropriate.
+
+The importer cleans text fields, converts measurement fields to numeric values, normalizes workout timestamps, groups rows by `start_time`, and skips sessions whose normalized start timestamp has already been imported. It does not currently auto-map alternate column names, so exports from other sources may need to be adapted to the documented format.
+
+See the [workout CSV import guide](project_docs/import-format.md) for the full column reference, cleaning behavior, duplicate handling, and limitations.
+
 ## Database & Data Pipeline
 
 RepWise stores sessions, exercises, sets, and daily metrics in **SQLite**, using primary/foreign keys, indexes, transactions, and duplicate-session protection. Historical workouts can be imported incrementally from **Hevy CSV exports** using Pandas for cleaning and validation.
