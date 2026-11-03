@@ -9,7 +9,7 @@ TEST_DB = (BASE_DIR / "data" / "repwise_test.db").resolve()
 
 
 def get_database_path():
-    app_env = os.getenv("REPWISE_ENV", "development").lower()
+    app_env = os.getenv("REPWISE_ENV", "production").lower()
 
     if app_env not in ("development", "production"):
         raise RuntimeError(f"Invalid REPWISE_ENV: {app_env}")
